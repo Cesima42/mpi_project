@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 5: Виртуальные топологии | АТУ MPI Центр</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* Стили из модуля 4 с оранжевым цветом для модуля 5 */
+        .accordion {
+            margin: 2.5rem 0;
+        }
+        
+        .accordion-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 1.2rem;
+            overflow: hidden;
+            box-shadow: 0 3px 10px var(--shadow);
+        }
+        
+        .accordion-header {
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 152, 0, 0.1); /* Оранжевый для модуля 5 */
+            transition: var(--transition);
+        }
+        
+        .accordion-header:hover {
+            background: rgba(255, 152, 0, 0.15);
+        }
+        
+        .accordion-header.active {
+            background: rgba(255, 152, 0, 0.2);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .accordion-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .accordion-icon {
+            transition: transform 0.3s ease;
+            color: #ff9800;
+        }
+        
+        .accordion-header.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+        
+        .accordion-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+        }
+        
+        .accordion-content.active {
+            padding: 2rem;
+            max-height: 5000px;
+        }
+        
+        /* Компактные элементы */
+        .compact-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1.2rem;
+            margin: 1.5rem 0;
+        }
+        
+        .compact-input {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .compact-input label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .compact-input input, .compact-input select {
+            padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+        
+        .compact-run-btn {
+            background: linear-gradient(135deg, #ff9800, #f57c00); /* Оранжевый */
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            transition: var(--transition);
+            font-size: 0.95rem;
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+        }
+        
+        .compact-run-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(255, 152, 0, 0.4);
+        }
+        
+        .compact-run-btn.running {
+            background: linear-gradient(135deg, var(--warning-color), #e65100);
+        }
+        
+        /* Компактный вывод */
+        .compact-output {
+            background: var(--code-bg);
+            color: #f8f8f2;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+        
+        .task-number {
+            background: #ff9800; /* Оранжевый */
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .tasks-count {
+            text-align: center;
+            margin: 2.5rem 0;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+        
+        .tasks-count h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        /* Топология визуализации */
+        .topology-grid {
+            display: grid;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(255, 152, 0, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 152, 0, 0.2);
+        }
+        
+        .grid-row {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        
+        .grid-cell {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 2px solid #ff9800;
+            border-radius: 6px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .grid-cell.coords {
+            font-size: 0.8rem;
+            flex-direction: column;
+            padding: 0.3rem;
+        }
+        
+        .grid-cell.main {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .grid-label {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: #ff9800;
+            font-weight: 600;
+        }
+        
+        /* Граф визуализация */
+        .graph-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: rgba(255, 152, 0, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 152, 0, 0.2);
+        }
+        
+        .graph-center {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #ff9800;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+        
+        .graph-rays {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+        }
+        
+        .graph-ray {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .graph-node {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #ff9800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
+        
+        .graph-node.connected {
+            background: #ff9800;
+            color: white;
+        }
+        
+        /* Инфо боксы */
+        .info-box {
+            background: rgba(255, 152, 0, 0.08);
+            border-left: 4px solid #ff9800;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box p {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .info-box strong {
+            color: #ff9800;
+        }
+        
+        .dimension-label {
+            display: inline-block;
+            background: rgba(255, 152, 0, 0.2);
+            color: #ff9800;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 0 0.3rem;
+        }
+        
+        .process-highlight {
+            background: rgba(255, 152, 0, 0.15);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 152, 0, 0.3);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <span class="atu-badge">АТУ</span>
+                MPI<span class="lab-text">Орталығы</span>
+            </a>
+            <div class="nav-links">
+                <a href="../index.html"><i class="fas fa-home"></i> Басты</a>
+                <a href="../about.html"><i class="fas fa-info-circle"></i> Жоба туралы</a>
+                <a href="../basics.html"><i class="fas fa-book"></i> MPI теориясы</a>
+                <div class="dropdown">
+                    <a href="#" class="dropdown-toggle active"><i class="fas fa-cubes"></i> Модульдер <i class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-menu">
+                        <a href="module1.html"><i class="fas fa-microchip"></i> Модуль 1</a>
+                        <a href="module2.html"><i class="fas fa-exchange-alt"></i> Модуль 2</a>
+                        <a href="module3.html"><i class="fas fa-users"></i> Модуль 3</a>
+                        <a href="module4.html"><i class="fas fa-network-wired"></i> Модуль 4</a>
+                        <a href="module5.html" class="active"><i class="fas fa-project-diagram"></i> Модуль 5</a>
+                    </div>
+                </div>
+                <a href="../cloud.html"><i class="fas fa-cloud"></i> Бұлттық технологиялар</a>
+            </div>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <section class="module-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Модуль 5: Виртуальные топологии</h1>
+                <p class="subtitle">Декартовы решетки, графы и MPI_Cart функции</p>
+                <p class="description">
+                    Изучение виртуальных топологий в MPI: создание декартовых решеток, 
+                    графов процессов и работа с функциями MPI_Cart_create, MPI_Cart_sub, 
+                    MPI_Cart_shift и MPI_Graph_create.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="university-info">
+            <h3><i class="fas fa-university"></i> Алматинский Технологический Университет</h3>
+            <p>Модуль 5: Виртуальные топологии в параллельных вычислениях</p>
+        </div>
+    </div>
+
+    <section class="module-content">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="../index.html">Главная</a> / 
+                <a href="../basics.html">Основы MPI</a> / 
+                <span>Модуль 5: Виртуальные топологии</span>
+            </div>
+
+            <div class="tasks-count">
+                <h3><i class="fas fa-tasks"></i> Вариант 16: 6 задач</h3>
+                <p>Тема: Виртуальные топологии процессов в MPI</p>
+                <div class="info-box">
+                    <p><strong>K = количество процессов = 8</strong> (для большинства задач)</p>
+                    <p>Декартовы топологии: 84, 85, 89, 93, 96</p>
+                    <p>Топология графа: 100</p>
+                </div>
+            </div>
+
+            <div class="accordion" id="tasksAccordion">
+                <!-- Task 84 - MPIBegin84 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="84">
+                        <div class="accordion-title">
+                            <i class="fas fa-th"></i> MPIBegin84
+                            <span class="task-number">1</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Бас процесте бүтін N саны берілген (N > 1, N ≤ K). K санын барлық процесстерге жіберіп, алғашқы процесстер үшін N × (K/N) өлшемді екі өлшемді тор (декарттық топология) анықтау. Топологияға кіретін әрбір процесте оның координаталарын шығару.</p>
+                            <div class="info-box">
+                                <p><strong>K = 8 процесс</strong></p>
+                                <p><strong>N = 2</strong> (бас процесте берілген)</p>
+                                <p><strong>Топология:</strong> 2 × 4 тор (2 қатар, 4 баған)</p>
+                                <p><strong>Процесс саны торда:</strong> 2 × 4 = 8 (барлық процесс)</p>
+                            </div>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері:</h4>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>N (бас процесте, 1 < N ≤ 8):</label>
+                                    <input type="number" id="task84-N" value="2" min="2" max="8" step="1">
+                                </div>
+                            </div>
+                            
+                            <!-- Визуализация топологии -->
+                            <div class="topology-grid">
+                                <div class="grid-label">Декарттық тор: 2 × 4</div>
+                                <div class="grid-row">
+                                    <div class="grid-cell coords">(0,0)<br>P0</div>
+                                    <div class="grid-cell coords">(0,1)<br>P1</div>
+                                    <div class="grid-cell coords">(0,2)<br>P2</div>
+                                    <div class="grid-cell coords">(0,3)<br>P3</div>
+                                </div>
+                                <div class="grid-row">
+                                    <div class="grid-cell coords">(1,0)<br>P4</div>
+                                    <div class="grid-cell coords">(1,1)<br>P5</div>
+                                    <div class="grid-cell coords">(1,2)<br>P6</div>
+                                    <div class="grid-cell coords">(1,3)<br>P7</div>
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="84">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Cart_create)
+                            </button>
+                            
+                            <div class="compact-output" id="output84">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Cart_create декарттық тор (екі өлшемді решетка) жасайды. Әр процестің тордағы координаталарын MPI_Cart_coords арқылы алуға болады.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin84.c - ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task84-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task84-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    int N, M; // N × M тор
+    int dims[2], periods[2] = {0, 0};
+    MPI_Comm cart_comm;
+    int coords[2];
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Бас процесте N алу
+    if (rank == 0) {
+        N = 2; // Мысал: N = 2
+        printf("Бас процесс: N = %d, K = %d\n", N, size);
+    }
+    
+    // N-ды барлық процесстерге жіберу
+    MPI_Bcast(&N, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    
+    // Тор өлшемдерін есептеу
+    M = size / N; // K/N
+    
+    // Тек алғашқы N×M процесстер үшін тор жасау
+    dims[0] = N;
+    dims[1] = M;
+    
+    if (rank < N * M) {
+        // Декарттық тор жасау
+        MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, 1, &cart_comm);
+        
+        // Жаңа коммуникаторда ранг алу
+        int cart_rank;
+        MPI_Comm_rank(cart_comm, &cart_rank);
+        
+        // Координаталарды алу
+        MPI_Cart_coords(cart_comm, cart_rank, 2, coords);
+        
+        printf("Процесс %d (торда %d): координаталар (%d, %d)\n", 
+               rank, cart_rank, coords[0], coords[1]);
+        
+        MPI_Comm_free(&cart_comm);
+    } else {
+        printf("Процесс %d: торға кірмейді (тор %d × %d = %d процесс)\n", 
+               rank, N, M, N * M);
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 85 - MPIBegin85 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="85">
+                        <div class="accordion-title">
+                            <i class="fas fa-grip-lines"></i> MPIBegin85
+                            <span class="task-number">2</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> K = 2N (жұп), N > 1. 0 және N процесстерінде нақты A саны берілген. Барлық процесстер үшін 2 × N өлшемді матрица (декарттық топология) анықтау. MPI_Cart_sub арқылы матрицаны екі бір өлшемді жолға бөлу. Әр жолдың бас процесінен (0 және N) сол жолдың барлық процесстеріне A санын жіберіп, әр процесте алынған санды шығару.</p>
+                            <div class="info-box">
+                                <p><strong>K = 8 процесс, N = 4</strong></p>
+                                <p><strong>Топология:</strong> 2 × 4 матрица</p>
+                                <p><strong>Бөлу:</strong> 2 жол (0-жол: P0,P1,P2,P3; 1-жол: P4,P5,P6,P7)</p>
+                                <p><strong>Бас процесстер:</strong> 0 және 4</p>
+                            </div>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері:</h4>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>A0 (процесс 0):</label>
+                                    <input type="number" id="task85-A0" value="10.5" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>A4 (процесс 4):</label>
+                                    <input type="number" id="task85-A4" value="20.5" step="0.1">
+                                </div>
+                            </div>
+                            
+                            <!-- Визуализация -->
+                            <div class="topology-grid">
+                                <div class="grid-label">Матрица 2 × 4 және жолдарға бөлу</div>
+                                <div class="grid-row">
+                                    <div class="grid-cell main">P0<br>A=10.5</div>
+                                    <div class="grid-cell">P1</div>
+                                    <div class="grid-cell">P2</div>
+                                    <div class="grid-cell">P3</div>
+                                </div>
+                                <div class="grid-row">
+                                    <div class="grid-cell main">P4<br>A=20.5</div>
+                                    <div class="grid-cell">P5</div>
+                                    <div class="grid-cell">P6</div>
+                                    <div class="grid-cell">P7</div>
+                                </div>
+                                <div style="text-align: center; margin-top: 1rem; color: #ff9800; font-size: 0.9rem;">
+                                    ↓ MPI_Cart_sub бойынша бөлу ↓
+                                </div>
+                                <div class="grid-row" style="margin-top: 1rem;">
+                                    <div class="grid-cell" style="background: rgba(255,152,0,0.1);">0-жол:<br>P0→P1→P2→P3</div>
+                                    <div class="grid-cell" style="background: rgba(255,152,0,0.1);">1-жол:<br>P4→P5→P6→P7</div>
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="85">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Cart_sub + MPI_Bcast)
+                            </button>
+                            
+                            <div class="compact-output" id="output85">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Cart_sub декарттық торды ішкі торларға бөледі. Бұл жағдайда матрицаны жолдарға (бір өлшемді торларға) бөлеміз. Содан кейін әр ішкі торда MPI_Bcast қолданамыз.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin85.c - ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task85-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task85-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    double A, received_A;
+    int dims[2] = {2, 4}; // 2 × 4 (K = 8, N = 4)
+    int periods[2] = {0, 0};
+    int keep_dims[2];
+    MPI_Comm cart_comm, row_comm;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процесте A мәнін орнату
+    A = 0.0;
+    if (rank == 0) A = 10.5;
+    if (rank == 4) A = 20.5;
+    
+    // Декарттық тор жасау (2 × 4)
+    MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, 1, &cart_comm);
+    
+    // Торды жолдарға бөлу (бірінші өлшемді сақтау, екіншісін жою)
+    keep_dims[0] = 1; // Бірінші өлшемді сақтау (жолдар)
+    keep_dims[1] = 0; // Екінші өлшемді жою (бағандар)
+    
+    MPI_Cart_sub(cart_comm, keep_dims, &row_comm);
+    
+    int row_rank, row_size;
+    MPI_Comm_rank(row_comm, &row_rank);
+    MPI_Comm_size(row_comm, &row_size);
+    
+    // Әр жолда MPI_Bcast: бас процестен (row_rank == 0) барлығына
+    MPI_Bcast(&A, 1, MPI_DOUBLE, 0, row_comm);
+    received_A = A;
+    
+    printf("Процесс %d: жол %d, жолдағы ранг %d, алған A = %.1f\n",
+           rank, rank/4, row_rank, received_A);
+    
+    MPI_Comm_free(&row_comm);
+    MPI_Comm_free(&cart_comm);
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 89 - MPIBegin89 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="89">
+                        <div class="accordion-title">
+                            <i class="fas fa-cube"></i> MPIBegin89
+                            <span class="task-number">3</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> K = 8 немесе 12 процесс, әр процесте бүтін сан берілген. Барлық процесстер үшін 2 × 2 × (K/4) өлшемді үш өлшемді тор анықтау. Оны 2 × (K/4) өлшемді екі матрица ретінде қарастырып, әр матрицаны екі жолға бөлу. Әр жолдың бас процесіне сол жолдағы барлық процесстерден сандарды жинап, алынған жиынтықтарды шығару.</p>
+                            <div class="info-box">
+                                <p><strong>K = 8 процесс</strong></p>
+                                <p><strong>Топология:</strong> 2 × 2 × 2 (үш өлшемді)</p>
+                                <p><strong>Матрицалар:</strong> 2 × 2 (бірінші координата бойынша)</p>
+                                <p><strong>Жолдар:</strong> Әр матрицада 2 жол (1 × 2)</p>
+                                <p><strong>Жинау:</strong> Әр жолдың бас процесіне Gather</p>
+                            </div>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (8 процесс, әрқайсысында бүтін сан):</h4>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 0:</label>
+                                    <input type="number" id="task89-p0" value="100" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 1:</label>
+                                    <input type="number" id="task89-p1" value="200" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 2:</label>
+                                    <input type="number" id="task89-p2" value="300" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 3:</label>
+                                    <input type="number" id="task89-p3" value="400" step="1">
+                                </div>
+                            </div>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 4:</label>
+                                    <input type="number" id="task89-p4" value="500" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 5:</label>
+                                    <input type="number" id="task89-p5" value="600" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 6:</label>
+                                    <input type="number" id="task89-p6" value="700" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 7:</label>
+                                    <input type="number" id="task89-p7" value="800" step="1">
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="89">
+                                <i class="fas fa-play"></i> Іске қосу (3D тор + MPI_Cart_sub + MPI_Gather)
+                            </button>
+                            
+                            <div class="compact-output" id="output89">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>Үш өлшемді тор жасап, оны матрицаларға (бірінші өлшем бойынша), содан кейін жолдарға (екінші өлшем бойынша) бөлеміз. Әр жолда MPI_Gather арқылы деректерді бас процеске жинаймыз.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin89.c - ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task89-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task89-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size = 8;
+    int my_number;
+    int dims[3] = {2, 2, 2}; // 2 × 2 × 2
+    int periods[3] = {0, 0, 0};
+    int keep_dims[3];
+    MPI_Comm cart_comm, matrix_comm, row_comm;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процесте сан орнату
+    my_number = (rank + 1) * 100;
+    
+    // Үш өлшемді тор жасау
+    MPI_Cart_create(MPI_COMM_WORLD, 3, dims, periods, 1, &cart_comm);
+    
+    int cart_rank;
+    int coords[3];
+    MPI_Comm_rank(cart_comm, &cart_rank);
+    MPI_Cart_coords(cart_comm, cart_rank, 3, coords);
+    
+    // Бірінші өлшемді сақтап, матрицаларға бөлу (2 × 2 матрицалар)
+    keep_dims[0] = 1; // Бірінші өлшем (матрицалар)
+    keep_dims[1] = 1; // Екінші өлшем
+    keep_dims[2] = 0; // Үшінші өлшемді жою
+    
+    MPI_Cart_sub(cart_comm, keep_dims, &matrix_comm);
+    
+    // Матрицаны жолдарға бөлу (екінші өлшемді сақтау)
+    int keep_rows[3] = {0, 1, 0}; // Тек екінші өлшемді сақтау
+    MPI_Cart_sub(cart_comm, keep_rows, &row_comm);
+    
+    int row_rank, row_size;
+    MPI_Comm_rank(row_comm, &row_rank);
+    MPI_Comm_size(row_comm, &row_size);
+    
+    int *gathered_data = NULL;
+    if (row_rank == 0) {
+        gathered_data = (int*)malloc(row_size * sizeof(int));
+    }
+    
+    // Әр жолда MPI_Gather
+    MPI_Gather(&my_number, 1, MPI_INT,
+               gathered_data, 1, MPI_INT,
+               0, row_comm);
+    
+    if (row_rank == 0) {
+        printf("Матрица (%d,%d) жол %d бас процесі: жиналған сандар:\n",
+               coords[0], coords[1], coords[2]);
+        for (int i = 0; i < row_size; i++) {
+            printf("  Процесстен %d: %d\n", i, gathered_data[i]);
+        }
+        free(gathered_data);
+    }
+    
+    MPI_Comm_free(&row_comm);
+    MPI_Comm_free(&matrix_comm);
+    MPI_Comm_free(&cart_comm);
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 93 - MPIBegin93 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="93">
+                        <div class="accordion-title">
+                            <i class="fas fa-retweet"></i> MPIBegin93
+                            <span class="task-number">4</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Бас процесте M және N оң бүтін сандары берілген (M·N ≤ K). 0-ден M·N-1 дейінгі процесстерде X және Y бүтін сандары бар. M және N-ді барлық процесстерге жіберіп, алғашқы M·N процесстер үшін M × N өлшемді периодты тор анықтау (бірінші өлшем бойынша периодты). Тордағы әр процесте (X, Y) координаталары бар процестің рангін тауып шығару (периодтылықты ескере отырып).</p>
+                            <div class="info-box">
+                                <p><strong>K = 8 процесс</strong></p>
+                                <p><strong>M = 2, N = 3 (M·N = 6 ≤ 8)</strong></p>
+                                <p><strong>Топология:</strong> 2 × 3 периодты тор</p>
+                                <p><strong>Периодтылық:</strong> Бірінші өлшем бойынша (қатарлар)</p>
+                            </div>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері:</h4>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>M (бас процесте):</label>
+                                    <input type="number" id="task93-M" value="2" min="1" max="8" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>N (бас процесте):</label>
+                                    <input type="number" id="task93-N" value="3" min="1" max="8" step="1">
+                                </div>
+                            </div>
+                            
+                            <h5 style="margin-top: 1.5rem;">Процесстердегі X, Y мәндері (0-ден M·N-1 дейін):</h5>
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>P0 X:</label>
+                                    <input type="number" id="task93-p0-x" value="1" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>P0 Y:</label>
+                                    <input type="number" id="task93-p0-y" value="2" step="1">
+                                </div>
+                            </div>
+                            
+                            <!-- Визуализация -->
+                            <div class="topology-grid">
+                                <div class="grid-label">Периодты тор 2 × 3 (қатарлар бойынша периодты)</div>
+                                <div class="grid-row">
+                                    <div class="grid-cell coords">(0,0)<br>P0</div>
+                                    <div class="grid-cell coords">(0,1)<br>P1</div>
+                                    <div class="grid-cell coords">(0,2)<br>P2</div>
+                                </div>
+                                <div class="grid-row">
+                                    <div class="grid-cell coords">(1,0)<br>P3</div>
+                                    <div class="grid-cell coords">(1,1)<br>P4</div>
+                                    <div class="grid-cell coords">(1,2)<br>P5</div>
+                                </div>
+                                <div style="text-align: center; margin-top: 1rem; color: #ff9800; font-size: 0.9rem;">
+                                    Периодтылық: (0,0) ↔ (1,0), (0,1) ↔ (1,1), (0,2) ↔ (1,2)
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="93">
+                                <i class="fas fa-play"></i> Іске қосу (Периодты тор + MPI_Cart_rank)
+                            </button>
+                            
+                            <div class="compact-output" id="output93">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Cart_create периодты тор жасауға мүмкіндік береді. MPI_Cart_rank берілген координаталарға сәйкес процестің рангін табады, периодтылықты ескере отырып.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin93.c - ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task93-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task93-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    int M, N;
+    int X, Y;
+    int dims[2], periods[2] = {1, 0}; // Бірінші өлшем периодты
+    MPI_Comm cart_comm;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Бас процесте M, N алу
+    if (rank == 0) {
+        M = 2; N = 3;
+        printf("Бас процесс: M = %d, N = %d, M×N = %d\n", M, N, M*N);
+    }
+    
+    // M, N-ді барлық процесстерге жіберу
+    MPI_Bcast(&M, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&N, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    
+    // Процесстерде X, Y мәндерін орнату (мысал)
+    if (rank < M * N) {
+        X = rank % 2 + 1; // Мысал мәндер
+        Y = rank % 3;
+    } else {
+        X = Y = -1;
+    }
+    
+    if (rank < M * N) {
+        printf("Процесс %d: менде X = %d, Y = %d\n", rank, X, Y);
+    }
+    
+    // Тек алғашқы M×N процесстер үшін тор жасау
+    dims[0] = M;
+    dims[1] = N;
+    
+    if (rank < M * N) {
+        // Периодты тор жасау
+        MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, 1, &cart_comm);
+        
+        int cart_rank;
+        MPI_Comm_rank(cart_comm, &cart_rank);
+        
+        // MPI_Cart_rank арқылы (X,Y) координаталары бар процестің рангін табу
+        int target_coords[2] = {X, Y};
+        int target_rank;
+        
+        // Координаталар жарамдылығын тексеру
+        if (X >= 0 && X < M && Y >= 0 && Y < N) {
+            MPI_Cart_rank(cart_comm, target_coords, &target_rank);
+            printf("Процесс %d (торда %d): координаталар (%d,%d) процесінің рангі = %d\n",
+                   rank, cart_rank, X, Y, target_rank);
+        } else {
+            printf("Процесс %d: жарамсыз координаталар (%d,%d) → -1\n",
+                   rank, X, Y);
+        }
+        
+        MPI_Comm_free(&cart_comm);
+    } else {
+        printf("Процесс %d: торға кірмейді (тор %d × %d = %d процесс)\n",
+               rank, M, N, M * N);
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 96 - MPIBegin96 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="96">
+                        <div class="accordion-title">
+                            <i class="fas fa-exchange-alt"></i> MPIBegin96
+                            <span class="task-number">5</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> K = 2N (жұп), N > 1; әр процесте нақты A саны бар. Барлық процесстер үшін 2 × N өлшемді тор анықтап, әр жолда цикликалық ығысуды орындау (1 қадамға). Әр процестен келесі процеске, соңғысынан бас процеске жіберу. MPI_Cart_shift және MPI_Sendrecv қолдану. Барлық процесстерде алынған деректерді шығару.</p>
+                            <div class="info-box">
+                                <p><strong>K = 8 процесс, N = 4</strong></p>
+                                <p><strong>Топология:</strong> 2 × 4 тор</p>
+                                <p><strong>Цикликалық ығысу:</strong> P0→P1→P2→P3→P0 (0-жол)</p>
+                                <p><strong>Цикликалық ығысу:</strong> P4→P5→P6→P7→P4 (1-жол)</p>
+                            </div>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (8 процесс, әрқайсысында нақты сан):</h4>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>A0:</label>
+                                    <input type="number" id="task96-p0" value="1.1" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>A1:</label>
+                                    <input type="number" id="task96-p1" value="2.2" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>A2:</label>
+                                    <input type="number" id="task96-p2" value="3.3" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>A3:</label>
+                                    <input type="number" id="task96-p3" value="4.4" step="0.1">
+                                </div>
+                            </div>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>A4:</label>
+                                    <input type="number" id="task96-p4" value="5.5" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>A5:</label>
+                                    <input type="number" id="task96-p5" value="6.6" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>A6:</label>
+                                    <input type="number" id="task96-p6" value="7.7" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>A7:</label>
+                                    <input type="number" id="task96-p7" value="8.8" step="0.1">
+                                </div>
+                            </div>
+                            
+                            <!-- Визуализация -->
+                            <div class="topology-grid">
+                                <div class="grid-label">Цикликалық ығысу 2 жолда</div>
+                                <div class="grid-row">
+                                    <div class="grid-cell" style="position: relative;">
+                                        P0→<br>1.1
+                                        <div style="position: absolute; bottom: -15px; right: 5px; font-size: 0.7rem; color: #ff9800;">↑</div>
+                                    </div>
+                                    <div class="grid-cell">P1→<br>2.2</div>
+                                    <div class="grid-cell">P2→<br>3.3</div>
+                                    <div class="grid-cell" style="position: relative;">
+                                        ←P3<br>4.4
+                                        <div style="position: absolute; bottom: -15px; left: 5px; font-size: 0.7rem; color: #ff9800;">↓</div>
+                                    </div>
+                                </div>
+                                <div class="grid-row">
+                                    <div class="grid-cell" style="position: relative;">
+                                        P4→<br>5.5
+                                        <div style="position: absolute; bottom: -15px; right: 5px; font-size: 0.7rem; color: #ff9800;">↑</div>
+                                    </div>
+                                    <div class="grid-cell">P5→<br>6.6</div>
+                                    <div class="grid-cell">P6→<br>7.7</div>
+                                    <div class="grid-cell" style="position: relative;">
+                                        ←P7<br>8.8
+                                        <div style="position: absolute; bottom: -15px; left: 5px; font-size: 0.7rem; color: #ff9800;">↓</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="96">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Cart_shift + MPI_Sendrecv)
+                            </button>
+                            
+                            <div class="compact-output" id="output96">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Cart_shift тордағы көршілес процесстердің рангтерін табады. MPI_Sendrecv бір уақытта жіберу және қабылдау операциясын орындайды (deadlock болмау үшін).</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin96.c - ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task96-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task96-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    double A, received_A;
+    int dims[2] = {2, 4}; // 2 × 4 тор
+    int periods[2] = {0, 1}; // Бағандар бойынша периодты (цикликалық)
+    MPI_Comm cart_comm;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процесте A мәнін орнату
+    A = (rank + 1) * 1.1;
+    
+    // Декарттық тор жасау (бағандар бойынша периодты)
+    MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, 1, &cart_comm);
+    
+    int cart_rank;
+    MPI_Comm_rank(cart_comm, &cart_rank);
+    
+    // MPI_Cart_shift арқылы жіберетін және қабылдайтын процесстерді табу
+    int source_rank, dest_rank;
+    int direction = 1; // Бағандар бойынша (екінші өлшем)
+    int disp = 1; // 1 қадам
+    
+    MPI_Cart_shift(cart_comm, direction, disp, &source_rank, &dest_rank);
+    
+    // Жіберу/қабылдау тегтері
+    int send_tag = 100, recv_tag = 100;
+    
+    printf("Процесс %d (торда %d): менің A = %.1f, көзі = %d, мақсат = %d\n",
+           rank, cart_rank, A, source_rank, dest_rank);
+    
+    // MPI_Sendrecv арқылы цикликалық ығысу
+    MPI_Sendrecv(&A, 1, MPI_DOUBLE, dest_rank, send_tag,
+                 &received_A, 1, MPI_DOUBLE, source_rank, recv_tag,
+                 cart_comm, MPI_STATUS_IGNORE);
+    
+    printf("Процесс %d: алған деректер = %.1f\n", rank, received_A);
+    
+    MPI_Comm_free(&cart_comm);
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 100 - MPIBegin100 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="100">
+                        <div class="accordion-title">
+                            <i class="fas fa-project-diagram"></i> MPIBegin100
+                            <span class="task-number">6</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> K = 3N + 1 (1 < N < 5); әр процесте бүтін A саны бар. MPI_Graph_create арқылы граф топологиясын анықтау: R, R+1, R+2 процесстері (R = 1, 4, 7, ...) бір-бірімен байланысқан, және 3-ке еселік процесстер (3, 6, ...) бас процесс (0) мен байланысқан. N-сәулелі жұлдыз алынады. Әр процестен көршілес процесстерге A санын жіберу. MPI_Graph_neighbors_count, MPI_Graph_neighbors және MPI_Sendrecv қолдану. Барлық процесстерде алынған сандарды өсу ретімен шығару.</p>
+                            <div class="info-box">
+                                <p><strong>K = 3N + 1 = 7 (N = 2)</strong></p>
+                                <p><strong>Граф:</strong> 2-сәулелі жұлдыз</p>
+                                <p><strong>Сәулелер:</strong> [1,2,3] және [4,5,6]</p>
+                                <p><strong>Байланыстар:</strong> 3 және 6 процесстері бас процесс (0) мен байланысқан</p>
+                            </div>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (7 процесс, әрқайсысында бүтін сан):</h4>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>A0:</label>
+                                    <input type="number" id="task100-p0" value="100" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>A1:</label>
+                                    <input type="number" id="task100-p1" value="200" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>A2:</label>
+                                    <input type="number" id="task100-p2" value="300" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>A3:</label>
+                                    <input type="number" id="task100-p3" value="400" step="1">
+                                </div>
+                            </div>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>A4:</label>
+                                    <input type="number" id="task100-p4" value="500" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>A5:</label>
+                                    <input type="number" id="task100-p5" value="600" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>A6:</label>
+                                    <input type="number" id="task100-p6" value="700" step="1">
+                                </div>
+                            </div>
+                            
+                            <!-- Визуализация графа -->
+                            <div class="graph-container">
+                                <div class="graph-center">
+                                    P0<br>100
+                                </div>
+                                <div class="graph-rays">
+                                    <div class="graph-ray">
+                                        <div class="graph-node connected">P3<br>400</div>
+                                        <div class="graph-node">P1<br>200</div>
+                                        <div class="graph-node">P2<br>300</div>
+                                        <div style="color: #ff9800; font-size: 0.8rem; margin-top: 0.5rem;">1-ші сәуле</div>
+                                    </div>
+                                    <div class="graph-ray">
+                                        <div class="graph-node connected">P6<br>700</div>
+                                        <div class="graph-node">P4<br>500</div>
+                                        <div class="graph-node">P5<br>600</div>
+                                        <div style="color: #ff9800; font-size: 0.8rem; margin-top: 0.5rem;">2-ші сәуле</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 1.5rem; text-align: center; color: #ff9800; font-size: 0.9rem;">
+                                    Байланыстар: P1-P2-P3-P0 және P4-P5-P6-P0
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="100">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Graph_create + MPI_Sendrecv)
+                            </button>
+                            
+                            <div class="compact-output" id="output100">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Graph_create граф топологиясын жасайды. MPI_Graph_neighbors_count және MPI_Graph_neighbors көршілес процесстер туралы ақпарат береді. MPI_Sendrecv көршілермен деректер алмасу үшін қолданылады.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin100.c - ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task100-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task100-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    int A;
+    MPI_Comm graph_comm;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // K = 7 процесс (N = 2, 3N+1 = 7)
+    // Әр процесте A мәнін орнату
+    A = (rank + 1) * 100;
+    
+    // Граф параметрлері (7 процесс)
+    int nnodes = 7; // Төбелер саны
+    int index[7] = {2, 4, 6, 9, 11, 13, 15}; // Әр төбе үшін көршілердің индексі
+    int edges[15] = {1, 2, 0, 3, 0, 4, 1, 2, 5, 2, 6, 4, 5, 3, 6}; // Көршілер
+    
+    /*
+    Граф құрылымы:
+    P0: P1, P2
+    P1: P0, P3
+    P2: P0, P4
+    P3: P1, P2, P5
+    P4: P2, P6
+    P5: P4, P6
+    P6: P3, P5
+    */
+    
+    // Граф топологиясын жасау
+    MPI_Graph_create(MPI_COMM_WORLD, nnodes, index, edges, 1, &graph_comm);
+    
+    int graph_rank;
+    MPI_Comm_rank(graph_comm, &graph_rank);
+    
+    // Көршілес процесстер санын алу
+    int neighbors_count;
+    MPI_Graph_neighbors_count(graph_comm, graph_rank, &neighbors_count);
+    
+    // Көршілес процесстерді алу
+    int *neighbors = (int*)malloc(neighbors_count * sizeof(int));
+    MPI_Graph_neighbors(graph_comm, graph_rank, neighbors_count, neighbors);
+    
+    printf("Процесс %d (графта %d): менің A = %d, көршілер саны = %d, көршілер: ",
+           rank, graph_rank, A, neighbors_count);
+    for (int i = 0; i < neighbors_count; i++) {
+        printf("%d ", neighbors[i]);
+    }
+    printf("\n");
+    
+    // Әр көршіге A жіберу және олардан деректер қабылдау
+    int *received = (int*)malloc(neighbors_count * sizeof(int));
+    
+    for (int i = 0; i < neighbors_count; i++) {
+        int neighbor = neighbors[i];
+        int send_tag = rank * 100 + neighbor;
+        int recv_tag = neighbor * 100 + rank;
+        
+        MPI_Sendrecv(&A, 1, MPI_INT, neighbor, send_tag,
+                     &received[i], 1, MPI_INT, neighbor, recv_tag,
+                     graph_comm, MPI_STATUS_IGNORE);
+    }
+    
+    // Алынған деректерді өсу ретімен сұрыптау
+    for (int i = 0; i < neighbors_count - 1; i++) {
+        for (int j = i + 1; j < neighbors_count; j++) {
+            if (received[i] > received[j]) {
+                int temp = received[i];
+                received[i] = received[j];
+                received[j] = temp;
+            }
+        }
+    }
+    
+    // Алынған деректерді шығару
+    printf("Процесс %d: көршілерден алған сандар (өсу ретімен): ", rank);
+    for (int i = 0; i < neighbors_count; i++) {
+        printf("%d ", received[i]);
+    }
+    printf("\n");
+    
+    free(neighbors);
+    free(received);
+    MPI_Comm_free(&graph_comm);
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>
+                        <span class="atu-badge-footer">АТУ</span>
+                        MPI Орталығы
+                    </h3>
+                    <p>Алматы Технологиялық Университетінің Жоғары өнімді есептеулер және параллельдік бағдарламалау бойынша оқу ресурсы</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Беттер</h4>
+                    <ul>
+                        <li><a href="../index.html">Басты бет</a></li>
+                        <li><a href="../about.html">Жоба туралы</a></li>
+                        <li><a href="../basics.html">MPI теориясы</a></li>
+                        <li><a href="../cloud.html">Бұлттық технологиялар</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Модульдер</h4>
+                    <ul>
+                        <li><a href="module1.html">Модуль 1: Процессер рангтары</a></li>
+                        <li><a href="module2.html">Модуль 2: Хабар алмасу</a></li>
+                        <li><a href="module3.html">Модуль 3: Жиынтық операциялар</a></li>
+                        <li><a href="module4.html">Модуль 4: Коллективті операциялар</a></li>
+                        <li><a href="module5.html" class="active">Модуль 5: Виртуалды топологиялар</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>АТУ Байланыс</h4>
+                    <p><i class="fas fa-university"></i> Алматы Технологиялық Университеті</p>
+                    <p><i class="fas fa-user-graduate"></i> Жетекші: Букенова Индира Нурмуханбетовна</p>
+                    <p><i class="fas fa-calendar"></i> 2024 жыл</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Алматы Технологиялық Университеті - АТУ MPI Орталығы. Барлық құқықтар қорғалған</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Аккордеон функционал
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+            
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('.accordion-icon');
+                    
+                    // Закрыть все остальные
+                    document.querySelectorAll('.accordion-content.active').forEach(activeContent => {
+                        if (activeContent !== content) {
+                            activeContent.classList.remove('active');
+                            activeContent.previousElementSibling.classList.remove('active');
+                        }
+                    });
+                    
+                    // Переключить текущий
+                    this.classList.toggle('active');
+                    content.classList.toggle('active');
+                });
+            });
+            
+            // Обработка выполнения задач
+            const runButtons = document.querySelectorAll('.compact-run-btn');
+            
+            runButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const taskId = this.getAttribute('data-task');
+                    const outputElement = document.getElementById(`output${taskId}`);
+                    
+                    this.classList.add('running');
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Орындалуда...';
+                    outputElement.textContent = 'MPI бағдарламасы іске қосылуда...\n';
+                    
+                    setTimeout(() => {
+                        this.classList.remove('running');
+                        this.innerHTML = originalText;
+                        
+                        let result = '';
+                        switch(taskId) {
+                            case '84':
+                                // MPIBegin84: Декарттық тор
+                                const N84 = parseInt(document.getElementById('task84-N').value) || 2;
+                                result = `MPIBegin84: Декарттық тор\n`;
+                                result += `================================\n`;
+                                result += `K = 8 процесс, N = ${N84}\n`;
+                                result += `Топология: ${N84} × ${8/N84} тор\n\n`;
+                                
+                                for (let i = 0; i < 8; i++) {
+                                    if (i < N84 * (8/N84)) {
+                                        const row = Math.floor(i / (8/N84));
+                                        const col = i % (8/N84);
+                                        result += `Процесс ${i} (торда ${i}): координаталар (${row}, ${col})\n`;
+                                    } else {
+                                        result += `Процесс ${i}: торға кірмейді (тор ${N84} × ${8/N84} = ${N84*(8/N84)} процесс)\n`;
+                                    }
+                                }
+                                break;
+                                
+                            case '85':
+                                // MPIBegin85: MPI_Cart_sub + MPI_Bcast
+                                const A0_85 = parseFloat(document.getElementById('task85-A0').value) || 10.5;
+                                const A4_85 = parseFloat(document.getElementById('task85-A4').value) || 20.5;
+                                
+                                result = `MPIBegin85: MPI_Cart_sub + MPI_Bcast\n`;
+                                result += `================================\n`;
+                                result += `2 × 4 тор, 2 жолға бөлінді:\n\n`;
+                                result += `0-жол (P0,P1,P2,P3):\n`;
+                                for (let i = 0; i < 4; i++) {
+                                    result += `  Процесс ${i}: жол 0, жолдағы ранг ${i}, алған A = ${A0_85.toFixed(1)}\n`;
+                                }
+                                result += `\n1-жол (P4,P5,P6,P7):\n`;
+                                for (let i = 4; i < 8; i++) {
+                                    result += `  Процесс ${i}: жол 1, жолдағы ранг ${i-4}, алған A = ${A4_85.toFixed(1)}\n`;
+                                }
+                                break;
+                                
+                            case '89':
+                                // MPIBegin89: 3D тор + MPI_Cart_sub + MPI_Gather
+                                const nums89 = [];
+                                for (let i = 0; i < 8; i++) {
+                                    const val = parseFloat(document.getElementById(`task89-p${i}`).value) || ((i+1)*100);
+                                    nums89.push(val);
+                                }
+                                
+                                result = `MPIBegin89: 3D тор + MPI_Cart_sub + MPI_Gather\n`;
+                                result += `================================\n`;
+                                result += `Үш өлшемді тор 2×2×2:\n\n`;
+                                
+                                // 2 матрица, әр матрицада 2 жол
+                                const matrices = [
+                                    {name: "Матрица 0", rows: [
+                                        {name: "Жол 0", procs: [0,1], values: [nums89[0], nums89[1]]},
+                                        {name: "Жол 1", procs: [2,3], values: [nums89[2], nums89[3]]}
+                                    ]},
+                                    {name: "Матрица 1", rows: [
+                                        {name: "Жол 0", procs: [4,5], values: [nums89[4], nums89[5]]},
+                                        {name: "Жол 1", procs: [6,7], values: [nums89[6], nums89[7]]}
+                                    ]}
+                                ];
+                                
+                                matrices.forEach(matrix => {
+                                    result += `${matrix.name}:\n`;
+                                    matrix.rows.forEach(row => {
+                                        result += `  ${row.name} бас процесі: жиналған сандар:\n`;
+                                        row.values.forEach((val, idx) => {
+                                            result += `    Процесстен ${row.procs[idx]}: ${val}\n`;
+                                        });
+                                    });
+                                    result += `\n`;
+                                });
+                                break;
+                                
+                            case '93':
+                                // MPIBegin93: Периодты тор + MPI_Cart_rank
+                                const M93 = parseInt(document.getElementById('task93-M').value) || 2;
+                                const N93 = parseInt(document.getElementById('task93-N').value) || 3;
+                                const X93 = parseInt(document.getElementById('task93-p0-x').value) || 1;
+                                const Y93 = parseInt(document.getElementById('task93-p0-y').value) || 2;
+                                
+                                result = `MPIBegin93: Периодты тор + MPI_Cart_rank\n`;
+                                result += `================================\n`;
+                                result += `M = ${M93}, N = ${N93}, M×N = ${M93*N93}\n`;
+                                result += `Периодты тор ${M93}×${N93} (бірінші өлшем бойынша периодты):\n\n`;
+                                
+                                // Координаталар мен рангтер
+                                const coords93 = [];
+                                for (let i = 0; i < M93*N93; i++) {
+                                    const row = Math.floor(i / N93);
+                                    const col = i % N93;
+                                    coords93.push({rank: i, row: row, col: col});
+                                }
+                                
+                                coords93.forEach(proc => {
+                                    // Периодтылықты ескере отырып (X,Y) процесінің рангін табу
+                                    let targetRow = X93 % M93; // Периодтылық бойынша
+                                    let targetCol = Y93 % N93;
+                                    
+                                    let targetRank = -1;
+                                    coords93.forEach(p => {
+                                        if (p.row === targetRow && p.col === targetCol) {
+                                            targetRank = p.rank;
+                                        }
+                                    });
+                                    
+                                    result += `Процесс ${proc.rank} (торда ${proc.rank}): `;
+                                    if (X93 >= 0 && X93 < M93 && Y93 >= 0 && Y93 < N93) {
+                                        result += `координаталар (${X93},${Y93}) процесінің рангі = ${targetRank}\n`;
+                                    } else {
+                                        result += `жарамсыз координаталар (${X93},${Y93}) → -1\n`;
+                                    }
+                                });
+                                
+                                if (M93*N93 < 8) {
+                                    for (let i = M93*N93; i < 8; i++) {
+                                        result += `Процесс ${i}: торға кірмейді (тор ${M93} × ${N93} = ${M93*N93} процесс)\n`;
+                                    }
+                                }
+                                break;
+                                
+                            case '96':
+                                // MPIBegin96: MPI_Cart_shift + MPI_Sendrecv
+                                const nums96 = [];
+                                for (let i = 0; i < 8; i++) {
+                                    const val = parseFloat(document.getElementById(`task96-p${i}`).value) || ((i+1)*1.1);
+                                    nums96.push(val);
+                                }
+                                
+                                result = `MPIBegin96: MPI_Cart_shift + MPI_Sendrecv\n`;
+                                result += `================================\n`;
+                                result += `2 × 4 тор, әр жолда цикликалық ығысу:\n\n`;
+                                
+                                // 0-жол: P0→P1→P2→P3→P0
+                                result += `0-жол (P0,P1,P2,P3):\n`;
+                                const shiftRow0 = [nums96[3], nums96[0], nums96[1], nums96[2]];
+                                for (let i = 0; i < 4; i++) {
+                                    result += `  Процесс ${i}: көзі = ${(i-1+4)%4}, мақсат = ${(i+1)%4}\n`;
+                                    result += `    Бастапқы A = ${nums96[i].toFixed(1)}, алған деректер = ${shiftRow0[i].toFixed(1)}\n`;
+                                }
+                                
+                                // 1-жол: P4→P5→P6→P7→P4
+                                result += `\n1-жол (P4,P5,P6,P7):\n`;
+                                const shiftRow1 = [nums96[7], nums96[4], nums96[5], nums96[6]];
+                                for (let i = 4; i < 8; i++) {
+                                    result += `  Процесс ${i}: көзі = ${4+(i-5+4)%4}, мақсат = ${4+(i-3)%4}\n`;
+                                    result += `    Бастапқы A = ${nums96[i].toFixed(1)}, алған деректер = ${shiftRow1[i-4].toFixed(1)}\n`;
+                                }
+                                break;
+                                
+                            case '100':
+                                // MPIBegin100: MPI_Graph_create + MPI_Sendrecv
+                                const nums100 = [];
+                                for (let i = 0; i < 7; i++) {
+                                    const val = parseInt(document.getElementById(`task100-p${i}`).value) || ((i+1)*100);
+                                    nums100.push(val);
+                                }
+                                
+                                result = `MPIBegin100: MPI_Graph_create + MPI_Sendrecv\n`;
+                                result += `================================\n`;
+                                result += `N-сәулелі жұлдыз (N=2), K=7 процесс:\n\n`;
+                                
+                                // Граф құрылымы
+                                const graph = {
+                                    0: [1, 2],      // P0: P1, P2
+                                    1: [0, 3],      // P1: P0, P3
+                                    2: [0, 4],      // P2: P0, P4
+                                    3: [1, 2, 5],   // P3: P1, P2, P5
+                                    4: [2, 6],      // P4: P2, P6
+                                    5: [4, 6],      // P5: P4, P6
+                                    6: [3, 5]       // P6: P3, P5
+                                };
+                                
+                                // Әр процесс үшін көршілерден алған деректер
+                                const receivedData = {};
+                                for (let proc = 0; proc < 7; proc++) {
+                                    const neighbors = graph[proc];
+                                    const received = [];
+                                    
+                                    for (let neighbor of neighbors) {
+                                        received.push(nums100[neighbor]);
+                                    }
+                                    
+                                    // Өсу ретімен сұрыптау
+                                    received.sort((a, b) => a - b);
+                                    receivedData[proc] = received;
+                                    
+                                    result += `Процесс ${proc}: көршілер саны = ${neighbors.length}, көршілер: ${neighbors.join(' ')}\n`;
+                                    result += `  Менің A = ${nums100[proc]}, көршілерден алған сандар (өсу ретімен): ${received.join(' ')}\n\n`;
+                                }
+                                break;
+                        }
+                        
+                        outputElement.textContent = result;
+                    }, 1500);
+                });
+            });
+            
+            // Функция копирования кода
+            window.copyCode = function(codeId) {
+                const codeElement = document.getElementById(codeId);
+                const codeText = codeElement.textContent;
+                
+                navigator.clipboard.writeText(codeText).then(() => {
+                    const btn = event.target.closest('.copy-btn');
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Көшірілді!';
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                    }, 2000);
+                });
+            };
+            
+            // Открыть первую задачу по умолчанию
+            if (accordionHeaders.length > 0) {
+                accordionHeaders[0].click();
+            }
+        });
+    </script>
+</body>
+</html>

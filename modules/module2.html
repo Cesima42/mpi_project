@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 2: Хабар алмасу - MPI LAB</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* Стили для аккордеона */
+        .accordion {
+            margin: 2rem 0;
+        }
+        
+        .accordion-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        
+        .accordion-header {
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(52, 152, 219, 0.1);
+            transition: var(--transition);
+        }
+        
+        .accordion-header:hover {
+            background: rgba(52, 152, 219, 0.15);
+        }
+        
+        .accordion-header.active {
+            background: rgba(52, 152, 219, 0.2);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .accordion-title {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .accordion-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .accordion-header.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+        
+        .accordion-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+        }
+        
+        .accordion-content.active {
+            padding: 1.5rem;
+            max-height: 5000px;
+        }
+        
+        /* Компактный стиль для инпутов */
+        .compact-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .compact-input {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        
+        .compact-input label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+        
+        .compact-input input {
+            padding: 0.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+        
+        .compact-run-btn {
+            background: linear-gradient(135deg, var(--success-color), #219653);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+        
+        .compact-run-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+        
+        .compact-run-btn.running {
+            background: linear-gradient(135deg, var(--warning-color), #e67e22);
+        }
+        
+        /* Компактный вывод */
+        .compact-output {
+            background: var(--code-bg);
+            color: #f8f8f2; /* Явно задаем светлый цвет */
+            border-radius: 5px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+        
+        .task-number {
+            background: var(--secondary-color);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .tasks-count {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--card-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .tasks-count h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Для сложных вводов */
+        .process-input-group {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.03);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .process-input-group h5 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        
+        .pair-input {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .pair-input label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .type-selector {
+            display: flex;
+            gap: 1rem;
+            margin: 0.5rem 0;
+        }
+        
+        .type-selector label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <span class="atu-badge">АТУ</span>
+                MPI<span class="lab-text">Орталығы</span>
+            </a>
+            <div class="nav-links">
+                <a href="../index.html"><i class="fas fa-home"></i> Басты</a>
+                <a href="../about.html"><i class="fas fa-info-circle"></i> Жоба туралы</a>
+                <a href="../basics.html"><i class="fas fa-book"></i> MPI теориясы</a>
+                <div class="dropdown">
+                    <a href="#" class="dropdown-toggle active"><i class="fas fa-cubes"></i> Модульдер <i class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-menu">
+                        <a href="module1.html"><i class="fas fa-microchip"></i> Модуль 1</a>
+                        <a href="module2.html" class="active"><i class="fas fa-exchange-alt"></i> Модуль 2</a>
+                        <a href="module3.html"><i class="fas fa-users"></i> Модуль 3</a>
+                        <a href="module4.html"><i class="fas fa-network-wired"></i> Модуль 4</a>
+                        <a href="module5.html"><i class="fas fa-project-diagram"></i> Модуль 5</a>
+                    </div>
+                </div>
+                <a href="../cloud.html"><i class="fas fa-cloud"></i> Бұлттық технологиялар</a>
+            </div>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <section class="module-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Модуль 2: Процессер арасында хабар алмасу</h1>
+                <p class="subtitle">MPI_Send, MPI_Recv, MPI_Bsend және басқа коммуникация функциялары</p>
+                <p class="description">
+                    Бұл модульде процессер арасында хабар алмасудың әртүрлі әдістерін үйренедіз. 
+                    Вариант 16 бойынша 8 практикалық тапсырманы орындайсыз.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="module-content">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="../index.html">Басты</a> / 
+                <a href="../basics.html">MPI негіздері</a> / 
+                <span>Модуль 2: Хабар алмасу</span>
+            </div>
+
+            <div class="tasks-count">
+                <h3><i class="fas fa-tasks"></i> Вариант 16: 8 тапсырма</h3>
+                <p>Төмендегі тапсырмалардың әрқайсысын кеңейту арқылы ашып, орындауға болады.</p>
+            </div>
+
+            <div class="accordion" id="tasksAccordion">
+                <!-- Task 8 - MPIBegin8 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="8">
+                        <div class="accordion-title">
+                            <i class="fas fa-buffer"></i> MPIBegin8
+                            <span class="task-number">1</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әрбір бас емес процесте нақты сан берілген. MPI_Bsend (буферленген жіберу) және MPI_Recv функцияларын пайдаланып, бұл сандарды бас процессқа жіберіп, оларды бас процесте рангтерінің кему ретімен шығару.</p>
+                            <p><strong>Қолданылатын функциялар:</strong> MPI_Buffer_attach, MPI_Bsend, MPI_Recv</p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс):</h4>
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 1 сан:</label>
+                                    <input type="number" id="task8-p1" value="3.14" step="0.01">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 2 сан:</label>
+                                    <input type="number" id="task8-p2" value="2.71" step="0.01">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 3 сан:</label>
+                                    <input type="number" id="task8-p3" value="1.41" step="0.01">
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="8">
+                                <i class="fas fa-play"></i> Іске қосу
+                            </button>
+                            
+                            <div class="compact-output" id="output8">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>Буферленген жіберу (MPI_Bsend) хабарды буферге салып, функция бірден орайды. Бас процесс қабылдаған сандарды кему ретімен (3, 2, 1) шығарады.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin8.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task8-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task8-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    double number;
+    MPI_Status status;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процесте санды анықтау
+    if (rank == 1) number = 3.14;
+    else if (rank == 2) number = 2.71;
+    else if (rank == 3) number = 1.41;
+    
+    if (rank == 0) {
+        // БАС ПРОЦЕСС: барлық сандарды қабылдау
+        double received_numbers[3];
+        
+        // КЕМУ РЕТІМЕН қабылдау (3, 2, 1)
+        for (int i = 3; i >= 1; i--) {
+            MPI_Recv(&received_numbers[3-i], 1, MPI_DOUBLE, 
+                    i, 0, MPI_COMM_WORLD, &status);
+        }
+        
+        printf("Барлық процессерден алынған сандар (кему ретімен):\n");
+        printf("Процесс 3: %.2f\n", received_numbers[0]);
+        printf("Процесс 2: %.2f\n", received_numbers[1]);
+        printf("Процесс 1: %.2f\n", received_numbers[2]);
+        
+    } else {
+        // БАС ЕМЕС ПРОЦЕСТЕР: буферленген жіберу
+        int buffer_size;
+        char *buffer;
+        
+        // Буфер өлшемін есептеу
+        MPI_Pack_size(1, MPI_DOUBLE, MPI_COMM_WORLD, &buffer_size);
+        buffer_size += MPI_BSEND_OVERHEAD;
+        
+        // Буферді бөлу
+        buffer = (char*)malloc(buffer_size);
+        MPI_Buffer_attach(buffer, buffer_size);
+        
+        // Буферленген жіберу
+        MPI_Bsend(&number, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+        
+        // Буферді босату
+        MPI_Buffer_detach(buffer, &buffer_size);
+        free(buffer);
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 12 - MPIBegin12 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="12">
+                        <div class="accordion-title">
+                            <i class="fas fa-sort-amount-down"></i> MPIBegin12
+                            <span class="task-number">2</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Бас процесте нақты сандар жиынтығы берілген; сандар саны бас емес процесстер санына тең. MPI_Bsend арқылы әр бас емес процессқа бір санды кері ретпен жіберу (бірінші сан соңғы процессқа, екінші сан соңғыдан бірінші процессқа, т.б.).</p>
+                            <p><strong>Қолданылатын функциялар:</strong> MPI_Bsend, MPI_Recv, MPI_Buffer_attach</p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері:</h4>
+                            <p>Бас процесте 3 сан (бас емес процесстер санына тең):</p>
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Сан 1:</label>
+                                    <input type="number" id="task12-num1" value="10.5" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Сан 2:</label>
+                                    <input type="number" id="task12-num2" value="20.3" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Сан 3:</label>
+                                    <input type="number" id="task12-num3" value="30.7" step="0.1">
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="12">
+                                <i class="fas fa-play"></i> Іске қосу
+                            </button>
+                            
+                            <div class="compact-output" id="output12">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>Бас процесс сандарды кері ретпен жібереді: 1-сан → процесс 3, 2-сан → процесс 2, 3-сан → процесс 1.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin12.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task12-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task12-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    double number;
+    MPI_Status status;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    if (rank == 0) {
+        // Бас процесс: 3 санды кері ретпен жіберу
+        double numbers[3] = {10.5, 20.3, 30.7};
+        
+        // Буфер дайындау
+        int buffer_size;
+        char *buffer;
+        MPI_Pack_size(3, MPI_DOUBLE, MPI_COMM_WORLD, &buffer_size);
+        buffer_size += MPI_BSEND_OVERHEAD * 3;
+        buffer = (char*)malloc(buffer_size);
+        MPI_Buffer_attach(buffer, buffer_size);
+        
+        // Кері ретпен жіберу
+        MPI_Bsend(&numbers[0], 1, MPI_DOUBLE, 3, 0, MPI_COMM_WORLD);
+        MPI_Bsend(&numbers[1], 1, MPI_DOUBLE, 2, 0, MPI_COMM_WORLD);
+        MPI_Bsend(&numbers[2], 1, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD);
+        
+        MPI_Buffer_detach(buffer, &buffer_size);
+        free(buffer);
+        
+    } else {
+        // Бас емес процесстер: санды қабылдау
+        MPI_Recv(&number, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &status);
+        printf("Процесс %d қабылдады: %.1f\n", rank, number);
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 14 - MPIBegin14 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="14">
+                        <div class="accordion-title">
+                            <i class="fas fa-search"></i> MPIBegin14
+                            <span class="task-number">3</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әрбір бас емес процесте бүтін сан берілген, тек бір процесс үшін бұл сан нөлден өзгеше. Нөл емес санды бас процессқа жіберіп, бас процесте қабылданған санды және оны жіберген процестің рангін шығару.</p>
+                            <p><strong>Қолданылатын функциялар:</strong> MPI_Send, MPI_Recv (MPI_ANY_SOURCE параметрімен)</p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері:</h4>
+                            <p>3 бас емес процесте сандар (тек біреуі нөл емес):</p>
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 1:</label>
+                                    <input type="number" id="task14-p1" value="0" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 2:</label>
+                                    <input type="number" id="task14-p2" value="42" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 3:</label>
+                                    <input type="number" id="task14-p3" value="0" step="1">
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="14">
+                                <i class="fas fa-play"></i> Іске қосу
+                            </button>
+                            
+                            <div class="compact-output" id="output14">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_ANY_SOURCE параметрі кез келген процестен хабар қабылдауға мүмкіндік береді. Бас процесс қай процесстен хабар алғанын біледі.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin14.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task14-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task14-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, number;
+    MPI_Status status;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    
+    if (rank == 0) {
+        // Бас процесс: кез келген процесстен хабар күту
+        MPI_Recv(&number, 1, MPI_INT, 
+                MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+        
+        printf("Бас процесс қабылдады:\n");
+        printf("Сан: %d\n", number);
+        printf("Жіберген процесс: %d\n", status.MPI_SOURCE);
+        
+    } else {
+        // Бас емес процесстер
+        number = 0; // Көбісі үшін 0
+        
+        if (rank == 2) { // Тек бір процесс нөл емес
+            number = 42;
+        }
+        
+        // Нөл емес санды жіберу
+        if (number != 0) {
+            MPI_Send(&number, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        }
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 19 - MPIBegin19 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="19">
+                        <div class="accordion-title">
+                            <i class="fas fa-exchange-alt"></i> MPIBegin19
+                            <span class="task-number">4</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әр процесте бүтін сан берілген. MPI_Send және MPI_Recv функцияларын пайдаланып, барлық процессер үшін деректердің циклдік ығысуын −1 қадаммен орындау (процесс 1-ден процесс 0-ге, процесс 2-ден процесс 1-ге, ..., процесс 0-ден соңғы процессқа).</p>
+                            <p><strong>Қолданылатын функциялар:</strong> MPI_Send, MPI_Recv</p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс):</h4>
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 0:</label>
+                                    <input type="number" id="task19-p0" value="100" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 1:</label>
+                                    <input type="number" id="task19-p1" value="200" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 2:</label>
+                                    <input type="number" id="task19-p2" value="300" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 3:</label>
+                                    <input type="number" id="task19-p3" value="400" step="1">
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="19">
+                                <i class="fas fa-play"></i> Іске қосу
+                            </button>
+                            
+                            <div class="compact-output" id="output19">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>Циклдік ығысу: 0←1←2←3←0. Әр процесс келесі процесстен сан алады және алдыңғы процессқа өз санын жібереді.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin19.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task19-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task19-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size, my_number, received_number;
+    MPI_Status status;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процестегі бастапқы сан
+    if (rank == 0) my_number = 100;
+    else if (rank == 1) my_number = 200;
+    else if (rank == 2) my_number = 300;
+    else if (rank == 3) my_number = 400;
+    
+    // Циклдік ығысу
+    int send_to = (rank - 1 + size) % size; // Алдыңғы процесс
+    int receive_from = (rank + 1) % size;   // Келесі процесс
+    
+    // Бір уақытта жіберу және қабылдау
+    MPI_Sendrecv(&my_number, 1, MPI_INT, send_to, 0,
+                 &received_number, 1, MPI_INT, receive_from, 0,
+                 MPI_COMM_WORLD, &status);
+    
+    printf("Процесс %d: бастапқы = %d, қабылданған = %d\n",
+           rank, my_number, received_number);
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 21 - MPIBegin21 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="21">
+                        <div class="accordion-title">
+                            <i class="fas fa-random"></i> MPIBegin21
+                            <span class="task-number">5</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әр процесте екі сан берілген: нақты A және бүтін N. N сандарының жиынтығы 0-ден K−1-ге дейінгі барлық мәндерді қамтиды (K - процесстер саны). Әр процесс өз A санын N процесске жібереді және қай процесстен сан алғанын шығарады.</p>
+                            <p><strong>Қолданылатын функциялар:</strong> MPI_Send, MPI_Recv (MPI_ANY_SOURCE параметрімен)</p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс):</h4>
+                            <p>Әр процесте (A, N) жұбы:</p>
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 0 A:</label>
+                                    <input type="number" id="task21-a0" value="1.1" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 0 N:</label>
+                                    <input type="number" id="task21-n0" value="3" min="0" max="3" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 1 A:</label>
+                                    <input type="number" id="task21-a1" value="2.2" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 1 N:</label>
+                                    <input type="number" id="task21-n1" value="0" min="0" max="3" step="1">
+                                </div>
+                            </div>
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 2 A:</label>
+                                    <input type="number" id="task21-a2" value="3.3" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 2 N:</label>
+                                    <input type="number" id="task21-n2" value="1" min="0" max="3" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 3 A:</label>
+                                    <input type="number" id="task21-a3" value="4.4" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 3 N:</label>
+                                    <input type="number" id="task21-n3" value="2" min="0" max="3" step="1">
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="21">
+                                <i class="fas fa-play"></i> Іске қосу
+                            </button>
+                            
+                            <div class="compact-output" id="output21">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>N мәндері 0,1,2,3 болуы керек (әртүрлі). Әр процесс өз A санын N индексті процессқа жібереді.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin21.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task21-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task21-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size, N;
+    double A, received_A;
+    MPI_Status status;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процестегі мәндер
+    if (rank == 0) { A = 1.1; N = 3; }
+    else if (rank == 1) { A = 2.2; N = 0; }
+    else if (rank == 2) { A = 3.3; N = 1; }
+    else if (rank == 3) { A = 4.4; N = 2; }
+    
+    // Өз санын N процесске жіберу
+    MPI_Send(&A, 1, MPI_DOUBLE, N, 0, MPI_COMM_WORLD);
+    
+    // Кез келген процесстен сан қабылдау
+    MPI_Recv(&received_A, 1, MPI_DOUBLE, 
+            MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+    
+    printf("Процесс %d: жіберді %.1f → процесс %d, алды %.1f ← процесс %d\n",
+           rank, A, N, received_A, status.MPI_SOURCE);
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 25 - MPIBegin25 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="25">
+                        <div class="accordion-title">
+                            <i class="fas fa-retweet"></i> MPIBegin25
+                            <span class="task-number">6</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әр процесте нақты сан берілген. MPI_Sendrecv_replace функциясын пайдаланып, бастапқы сандардың ретін кері қайтару (0 процесінің саны соңғы процессқа, 1 процесінің саны соңғыдан бірінші процессқа, т.б.).</p>
+                            <p><strong>Қолданылатын функциялар:</strong> MPI_Sendrecv_replace</p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс):</h4>
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 0:</label>
+                                    <input type="number" id="task25-p0" value="10.0" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 1:</label>
+                                    <input type="number" id="task25-p1" value="20.0" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 2:</label>
+                                    <input type="number" id="task25-p2" value="30.0" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 3:</label>
+                                    <input type="number" id="task25-p3" value="40.0" step="0.1">
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="25">
+                                <i class="fas fa-play"></i> Іске қосу
+                            </button>
+                            
+                            <div class="compact-output" id="output25">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Sendrecv_replace бір уақытта жіберу және қабылдауды орындайды. Сандар кері реттелуі керек: 0↔3, 1↔2.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin25.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task25-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task25-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    double number;
+    MPI_Status status;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процестегі бастапқы сан
+    if (rank == 0) number = 10.0;
+    else if (rank == 1) number = 20.0;
+    else if (rank == 2) number = 30.0;
+    else if (rank == 3) number = 40.0;
+    
+    // Кері реттеу
+    int partner = size - 1 - rank; // 0↔3, 1↔2
+    
+    MPI_Sendrecv_replace(&number, 1, MPI_DOUBLE,
+                        partner, 0, partner, 0,
+                        MPI_COMM_WORLD, &status);
+    
+    printf("Процесс %d: қабылданған сан = %.1f\n", rank, number);
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 27 - MPIBegin27 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="27">
+                        <div class="accordion-title">
+                            <i class="fas fa-list-ol"></i> MPIBegin27
+                            <span class="task-number">7</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әрбір бас емес процесте бүтін сан L (≥ 0) және L (A, N) жұптары берілген. Барлық L сандарының қосындысы 2K (K - процесстер саны). N нөмірлерінің жиынтығы 1-ден 2K-ға дейінгі барлық сандарды қамтиды. A сандарын бас процессқа жіберіп, оларды N нөмірлерінің өсу ретімен шығару.</p>
+                            <p><strong>Қолданылатын функциялар:</strong> MPI_Send (msgtag параметрінде N қолдану), MPI_Recv</p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс, K=4, 2K=8):</h4>
+                            
+                            <div class="process-input-group">
+                                <h5>Процесс 1:</h5>
+                                <div class="compact-input">
+                                    <label>L (жұптар саны):</label>
+                                    <input type="number" id="task27-l1" value="2" min="1" max="8" step="1" onchange="createPairs(1)">
+                                </div>
+                                <div class="pairs-container" id="pairs-container1">
+                                    <!-- Поля для пар будут созданы динамически -->
+                                </div>
+                            </div>
+                            
+                            <div class="process-input-group">
+                                <h5>Процесс 2:</h5>
+                                <div class="compact-input">
+                                    <label>L (жұптар саны):</label>
+                                    <input type="number" id="task27-l2" value="3" min="1" max="8" step="1" onchange="createPairs(2)">
+                                </div>
+                                <div class="pairs-container" id="pairs-container2">
+                                    <!-- Поля для пар будут созданы динамически -->
+                                </div>
+                            </div>
+                            
+                            <div class="process-input-group">
+                                <h5>Процесс 3:</h5>
+                                <div class="compact-input">
+                                    <label>L (жұптар саны):</label>
+                                    <input type="number" id="task27-l3" value="3" min="1" max="8" step="1" onchange="createPairs(3)">
+                                </div>
+                                <div class="pairs-container" id="pairs-container3">
+                                    <!-- Поля для пар будут созданы динамически -->
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="27">
+                                <i class="fas fa-play"></i> Іске қосу
+                            </button>
+                            
+                            <div class="compact-output" id="output27">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>msgtag параметрінде N нөмірін пайдалану. Бас процесс хабарларды tag бойынша сұрыптай алады. N нөмірлері 1-ден 8-ге дейін барлық сандарды қамтиды.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin27.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task27-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task27-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size, L;
+    double A;
+    int N;
+    MPI_Status status;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    int K = size - 1; // Бас емес процесстер саны
+    int total_numbers = 2 * K; // 8
+    
+    if (rank == 0) {
+        // Бас процесс: барлық сандарды қабылдау
+        double received_numbers[total_numbers];
+        int tags[total_numbers];
+        
+        printf("Бас процесс %d хабарды күтуде...\n", total_numbers);
+        
+        for (int i = 0; i < total_numbers; i++) {
+            MPI_Recv(&received_numbers[i], 1, MPI_DOUBLE,
+                    MPI_ANY_SOURCE, MPI_ANY_TAG,
+                    MPI_COMM_WORLD, &status);
+            tags[i] = status.MPI_TAG;
+            
+            printf("Қабылданды: %.1f (tag=%d, процесс %d)\n",
+                   received_numbers[i], status.MPI_TAG, status.MPI_SOURCE);
+        }
+        
+        // Tag бойынша сұрыптау (қарапайым бағдарламада)
+        printf("\nTag бойынша сұрыпталған:\n");
+        for (int tag = 1; tag <= total_numbers; tag++) {
+            for (int i = 0; i < total_numbers; i++) {
+                if (tags[i] == tag) {
+                    printf("tag=%d: %.1f\n", tag, received_numbers[i]);
+                    break;
+                }
+            }
+        }
+        
+    } else {
+        // Бас емес процесстер
+        if (rank == 1) {
+            L = 2;
+            double numbers[2] = {5.5, 6.6};
+            int tags[2] = {1, 4};
+            
+            for (int i = 0; i < L; i++) {
+                MPI_Send(&numbers[i], 1, MPI_DOUBLE, 0, tags[i], MPI_COMM_WORLD);
+            }
+            
+        } else if (rank == 2) {
+            L = 3;
+            double numbers[3] = {1.1, 2.2, 3.3};
+            int tags[3] = {2, 6, 8};
+            
+            for (int i = 0; i < L; i++) {
+                MPI_Send(&numbers[i], 1, MPI_DOUBLE, 0, tags[i], MPI_COMM_WORLD);
+            }
+            
+        } else if (rank == 3) {
+            L = 3;
+            double numbers[3] = {7.7, 8.8, 9.9};
+            int tags[3] = {3, 5, 7};
+            
+            for (int i = 0; i < L; i++) {
+                MPI_Send(&numbers[i], 1, MPI_DOUBLE, 0, tags[i], MPI_COMM_WORLD);
+            }
+        }
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 29 - MPIBegin29 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="29">
+                        <div class="accordion-title">
+                            <i class="fas fa-tag"></i> MPIBegin29
+                            <span class="task-number">8</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әрбір бас емес процесте екі бүтін сан T, N және N саннан тұратын жиынтық берілген. T = 0 болса, сандар бүтін; T = 1 болса, сандар нақты. Бастапқы жиынтықтарды бас процессқа жіберіп, қабылданған сандарды жіберген процесстер рангтерінің өсу ретімен шығару.</p>
+                            <p><strong>Қолданылатын функциялар:</strong> MPI_Send (msgtag параметрінде T қолдану), MPI_Probe (MPI_ANY_TAG параметрімен)</p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері:</h4>
+                            
+                            <div class="process-input-group">
+                                <h5>Процесс 1:</h5>
+                                <div class="compact-input">
+                                    <label>T (0=бүтін, 1=нақты):</label>
+                                    <select id="task29-t1">
+                                        <option value="0" selected>0 - бүтін сандар</option>
+                                        <option value="1">1 - нақты сандар</option>
+                                    </select>
+                                </div>
+                                <div class="compact-input">
+                                    <label>N (сандар саны):</label>
+                                    <input type="number" id="task29-n1" value="2" min="1" max="10" step="1" onchange="createNumbers(1)">
+                                </div>
+                                <div class="numbers-container" id="numbers-container1">
+                                    <!-- Поля для чисел будут созданы динамически -->
+                                </div>
+                            </div>
+                            
+                            <div class="process-input-group">
+                                <h5>Процесс 2:</h5>
+                                <div class="compact-input">
+                                    <label>T (0=бүтін, 1=нақты):</label>
+                                    <select id="task29-t2">
+                                        <option value="0">0 - бүтін сандар</option>
+                                        <option value="1" selected>1 - нақты сандар</option>
+                                    </select>
+                                </div>
+                                <div class="compact-input">
+                                    <label>N (сандар саны):</label>
+                                    <input type="number" id="task29-n2" value="2" min="1" max="10" step="1" onchange="createNumbers(2)">
+                                </div>
+                                <div class="numbers-container" id="numbers-container2">
+                                    <!-- Поля для чисел будут созданы динамически -->
+                                </div>
+                            </div>
+                            
+                            <div class="process-input-group">
+                                <h5>Процесс 3:</h5>
+                                <div class="compact-input">
+                                    <label>T (0=бүтін, 1=нақты):</label>
+                                    <select id="task29-t3">
+                                        <option value="0" selected>0 - бүтін сандар</option>
+                                        <option value="1">1 - нақты сандар</option>
+                                    </select>
+                                </div>
+                                <div class="compact-input">
+                                    <label>N (сандар саны):</label>
+                                    <input type="number" id="task29-n3" value="3" min="1" max="10" step="1" onchange="createNumbers(3)">
+                                </div>
+                                <div class="numbers-container" id="numbers-container3">
+                                    <!-- Поля для чисел будут созданы динамически -->
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="29">
+                                <i class="fas fa-play"></i> Іске қосу
+                            </button>
+                            
+                            <div class="compact-output" id="output29">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Probe хабарды алдын ала тексеруге мүмкіндік береді. msgtag параметрі T мәнін тасымалдайды (0 немесе 1).</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin29.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task29-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task29-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size, T, N;
+    MPI_Status status;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    if (rank == 0) {
+        // Бас процесс: MPI_Probe арқылы тексеру
+        printf("Бас процесс MPI_Probe күтуде...\n");
+        
+        for (int source = 1; source < size; source++) {
+            // Хабарды тексеру
+            MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            
+            T = status.MPI_TAG; // Tag = T мәні
+            int count;
+            MPI_Get_count(&status, (T == 0) ? MPI_INT : MPI_DOUBLE, &count);
+            N = count;
+            
+            printf("\nПроцесс %d (T=%d, N=%d):\n", status.MPI_SOURCE, T, N);
+            
+            if (T == 0) {
+                // Бүтін сандар
+                int int_numbers[N];
+                MPI_Recv(int_numbers, N, MPI_INT, status.MPI_SOURCE, T,
+                        MPI_COMM_WORLD, &status);
+                
+                for (int i = 0; i < N; i++) {
+                    printf("  %d", int_numbers[i]);
+                }
+            } else {
+                // Нақты сандар
+                double double_numbers[N];
+                MPI_Recv(double_numbers, N, MPI_DOUBLE, status.MPI_SOURCE, T,
+                        MPI_COMM_WORLD, &status);
+                
+                for (int i = 0; i < N; i++) {
+                    printf("  %.2f", double_numbers[i]);
+                }
+            }
+            printf("\n");
+        }
+        
+    } else {
+        // Бас емес процесстер
+        if (rank == 1) {
+            T = 0; // Бүтін сандар
+            N = 2;
+            int numbers[2] = {10, 20};
+            MPI_Send(numbers, N, MPI_INT, 0, T, MPI_COMM_WORLD);
+            
+        } else if (rank == 2) {
+            T = 1; // Нақты сандар
+            N = 2;
+            double numbers[2] = {3.14, 2.71};
+            MPI_Send(numbers, N, MPI_DOUBLE, 0, T, MPI_COMM_WORLD);
+            
+        } else if (rank == 3) {
+            T = 0; // Бүтін сандар
+            N = 3;
+            int numbers[3] = {1, 2, 3};
+            MPI_Send(numbers, N, MPI_INT, 0, T, MPI_COMM_WORLD);
+        }
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>MPI<span>LAB</span></h3>
+                    <p>Жоғары өнімді есептеулер және параллельдік бағдарламалау бойынша оқу ресурсы</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Беттер</h4>
+                    <ul>
+                        <li><a href="../index.html">Басты бет</a></li>
+                        <li><a href="../about.html">Жоба туралы</a></li>
+                        <li><a href="../basics.html">MPI теориясы</a></li>
+                        <li><a href="../cloud.html">Бұлттық технологиялар</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Модульдер</h4>
+                    <ul>
+                        <li><a href="module1.html">Модуль 1: Процессер рангтары</a></li>
+                        <li><a href="module2.html" class="active">Модуль 2: Хабар алмасу</a></li>
+                        <li><a href="module3.html">Модуль 3: Жиынтық операциялар</a></li>
+                        <li><a href="module4.html">Модуль 4: Коллективтік жіберу</a></li>
+                        <li><a href="module5.html">Модуль 5: Виртуалды топологиялар</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Байланыс</h4>
+                    <p><i class="fas fa-user-graduate"></i> Жетекші: Букенова Индира Нурмуханбетовна</p>
+                    <p><i class="fas fa-calendar"></i> 2024 жыл</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 MPI LAB - Барлық құқықтар қорғалған</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Функция для создания полей ввода пар (A, N)
+        function createPairs(processNum) {
+            const L = parseInt(document.getElementById(`task27-l${processNum}`).value) || 2;
+            const container = document.getElementById(`pairs-container${processNum}`);
+            container.innerHTML = '';
+            
+            for (let i = 0; i < L; i++) {
+                const pairDiv = document.createElement('div');
+                pairDiv.className = 'pair-input';
+                pairDiv.innerHTML = `
+                    <div class="compact-input">
+                        <label>A${i+1} (сан):</label>
+                        <input type="number" id="task27-p${processNum}-a${i}" value="${5 + i}" step="0.1">
+                    </div>
+                    <div class="compact-input">
+                        <label>N${i+1} (тег):</label>
+                        <input type="number" id="task27-p${processNum}-n${i}" value="${i+1}" min="1" max="8" step="1">
+                    </div>
+                `;
+                container.appendChild(pairDiv);
+            }
+        }
+        
+        // Функция для создания полей ввода чисел
+        function createNumbers(processNum) {
+            const N = parseInt(document.getElementById(`task29-n${processNum}`).value) || 2;
+            const T = parseInt(document.getElementById(`task29-t${processNum}`).value) || 0;
+            const container = document.getElementById(`numbers-container${processNum}`);
+            container.innerHTML = '';
+            
+            for (let i = 0; i < N; i++) {
+                const inputDiv = document.createElement('div');
+                inputDiv.className = 'compact-input';
+                inputDiv.innerHTML = `
+                    <label>Сан ${i+1}:</label>
+                    <input type="number" id="task29-p${processNum}-num${i}" 
+                           value="${(T === 0) ? (i+1) : (1.0 + i*0.5)}" 
+                           step="${(T === 0) ? '1' : '0.01'}">
+                `;
+                container.appendChild(inputDiv);
+            }
+        }
+        
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            // Создаем начальные поля для задач 27 и 29
+            createPairs(1);
+            createPairs(2);
+            createPairs(3);
+            createNumbers(1);
+            createNumbers(2);
+            createNumbers(3);
+            
+            // Аккордеон функционал
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+            
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('.accordion-icon');
+                    
+                    // Закрыть все остальные
+                    document.querySelectorAll('.accordion-content.active').forEach(activeContent => {
+                        if (activeContent !== content) {
+                            activeContent.classList.remove('active');
+                            activeContent.previousElementSibling.classList.remove('active');
+                        }
+                    });
+                    
+                    // Переключить текущий
+                    this.classList.toggle('active');
+                    content.classList.toggle('active');
+                });
+            });
+            
+            // Обработка выполнения задач
+            const runButtons = document.querySelectorAll('.compact-run-btn');
+            
+            runButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const taskId = this.getAttribute('data-task');
+                    const outputElement = document.getElementById(`output${taskId}`);
+                    
+                    this.classList.add('running');
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Орындалуда...';
+                    outputElement.textContent = 'MPI бағдарламасы іске қосылуда...\n';
+                    
+                    setTimeout(() => {
+                        this.classList.remove('running');
+                        this.innerHTML = originalText;
+                        
+                        let result = '';
+                        switch(taskId) {
+                            case '8':
+                                const p1_8 = parseFloat(document.getElementById('task8-p1').value) || 3.14;
+                                const p2_8 = parseFloat(document.getElementById('task8-p2').value) || 2.71;
+                                const p3_8 = parseFloat(document.getElementById('task8-p3').value) || 1.41;
+                                
+                                result = `MPIBegin8: Буферленген жіберу\n`;
+                                result += `================================\n`;
+                                result += `Бас процесс хабарларды күтуде...\n`;
+                                result += `Процесс 3: буфер дайын (${p3_8.toFixed(2)})\n`;
+                                result += `Процесс 2: буфер дайын (${p2_8.toFixed(2)})\n`;
+                                result += `Процесс 1: буфер дайын (${p1_8.toFixed(2)})\n`;
+                                result += `================================\n`;
+                                result += `Бас процесс қабылдады (кему ретімен):\n`;
+                                result += `Процесс 3: ${p3_8.toFixed(2)}\n`;
+                                result += `Процесс 2: ${p2_8.toFixed(2)}\n`;
+                                result += `Процесс 1: ${p1_8.toFixed(2)}\n`;
+                                break;
+                                
+                            case '12':
+                                const num1_12 = parseFloat(document.getElementById('task12-num1').value) || 10.5;
+                                const num2_12 = parseFloat(document.getElementById('task12-num2').value) || 20.3;
+                                const num3_12 = parseFloat(document.getElementById('task12-num3').value) || 30.7;
+                                
+                                result = `MPIBegin12: Кері ретпен жіберу\n`;
+                                result += `================================\n`;
+                                result += `Бас процесс буферленген жіберуді бастады:\n`;
+                                result += `${num1_12.toFixed(1)} → процесс 3\n`;
+                                result += `${num2_12.toFixed(1)} → процесс 2\n`;
+                                result += `${num3_12.toFixed(1)} → процесс 1\n`;
+                                result += `================================\n`;
+                                result += `Процесс 3 қабылдады: ${num1_12.toFixed(1)}\n`;
+                                result += `Процесс 2 қабылдады: ${num2_12.toFixed(1)}\n`;
+                                result += `Процесс 1 қабылдады: ${num3_12.toFixed(1)}\n`;
+                                break;
+                                
+                            case '14':
+                                const p1_14 = parseInt(document.getElementById('task14-p1').value) || 0;
+                                const p2_14 = parseInt(document.getElementById('task14-p2').value) || 0;
+                                const p3_14 = parseInt(document.getElementById('task14-p3').value) || 0;
+                                
+                                // Находим ненулевой процесс
+                                let nonZeroValue = 0;
+                                let nonZeroRank = -1;
+                                
+                                if (p1_14 !== 0) { nonZeroValue = p1_14; nonZeroRank = 1; }
+                                else if (p2_14 !== 0) { nonZeroValue = p2_14; nonZeroRank = 2; }
+                                else if (p3_14 !== 0) { nonZeroValue = p3_14; nonZeroRank = 3; }
+                                
+                                result = `MPIBegin14: Тек бір нөл емес сан\n`;
+                                result += `================================\n`;
+                                result += `Бас процесс MPI_ANY_SOURCE күтуде...\n`;
+                                result += `Процесс 1: ${p1_14}\n`;
+                                result += `Процесс 2: ${p2_14}\n`;
+                                result += `Процесс 3: ${p3_14}\n`;
+                                result += `================================\n`;
+                                
+                                if (nonZeroRank !== -1) {
+                                    result += `Бас процесс қабылдады:\n`;
+                                    result += `Сан: ${nonZeroValue}\n`;
+                                    result += `Жіберген процесс рангі: ${nonZeroRank}\n`;
+                                } else {
+                                    result += `Ешқандай нөл емес сан табылмады!\n`;
+                                }
+                                break;
+                                
+                            case '19':
+                                const p0_19 = parseInt(document.getElementById('task19-p0').value) || 100;
+                                const p1_19 = parseInt(document.getElementById('task19-p1').value) || 200;
+                                const p2_19 = parseInt(document.getElementById('task19-p2').value) || 300;
+                                const p3_19 = parseInt(document.getElementById('task19-p3').value) || 400;
+                                
+                                result = `MPIBegin19: Циклдік ығысу (-1)\n`;
+                                result += `================================\n`;
+                                result += `Бастапқы сандар:\n`;
+                                result += `Процесс 0: ${p0_19}\n`;
+                                result += `Процесс 1: ${p1_19}\n`;
+                                result += `Процесс 2: ${p2_19}\n`;
+                                result += `Процесс 3: ${p3_19}\n`;
+                                result += `================================\n`;
+                                result += `Ығысқаннан кейін:\n`;
+                                result += `Процесс 0: ${p1_19} (1-ден алды)\n`;
+                                result += `Процесс 1: ${p2_19} (2-ден алды)\n`;
+                                result += `Процесс 2: ${p3_19} (3-тен алды)\n`;
+                                result += `Процесс 3: ${p0_19} (0-ден алды)\n`;
+                                break;
+                                
+                            case '21':
+                                const a0_21 = parseFloat(document.getElementById('task21-a0').value) || 1.1;
+                                const n0_21 = parseInt(document.getElementById('task21-n0').value) || 3;
+                                const a1_21 = parseFloat(document.getElementById('task21-a1').value) || 2.2;
+                                const n1_21 = parseInt(document.getElementById('task21-n1').value) || 0;
+                                const a2_21 = parseFloat(document.getElementById('task21-a2').value) || 3.3;
+                                const n2_21 = parseInt(document.getElementById('task21-n2').value) || 1;
+                                const a3_21 = parseFloat(document.getElementById('task21-a3').value) || 4.4;
+                                const n3_21 = parseInt(document.getElementById('task21-n3').value) || 2;
+                                
+                                result = `MPIBegin21: Әр процесске арналған сандар\n`;
+                                result += `================================\n`;
+                                result += `Процесс 0: A=${a0_21.toFixed(1)} → N=${n0_21}\n`;
+                                result += `Процесс 1: A=${a1_21.toFixed(1)} → N=${n1_21}\n`;
+                                result += `Процесс 2: A=${a2_21.toFixed(1)} → N=${n2_21}\n`;
+                                result += `Процесс 3: A=${a3_21.toFixed(1)} → N=${n3_21}\n`;
+                                result += `================================\n`;
+                                result += `Қабылданған сандар:\n`;
+                                result += `Процесс 0: ${a1_21.toFixed(1)} (1-ден алды)\n`;
+                                result += `Процесс 1: ${a2_21.toFixed(1)} (2-ден алды)\n`;
+                                result += `Процесс 2: ${a3_21.toFixed(1)} (3-тен алды)\n`;
+                                result += `Процесс 3: ${a0_21.toFixed(1)} (0-ден алды)\n`;
+                                break;
+                                
+                            case '25':
+                                const p0_25 = parseFloat(document.getElementById('task25-p0').value) || 10.0;
+                                const p1_25 = parseFloat(document.getElementById('task25-p1').value) || 20.0;
+                                const p2_25 = parseFloat(document.getElementById('task25-p2').value) || 30.0;
+                                const p3_25 = parseFloat(document.getElementById('task25-p3').value) || 40.0;
+                                
+                                result = `MPIBegin25: Кері реттеу\n`;
+                                result += `================================\n`;
+                                result += `MPI_Sendrecv_replace іске қосылды\n`;
+                                result += `Бастапқы сандар:\n`;
+                                result += `[${p0_25.toFixed(1)}, ${p1_25.toFixed(1)}, ${p2_25.toFixed(1)}, ${p3_25.toFixed(1)}]\n`;
+                                result += `================================\n`;
+                                result += `Кері реттелген сандар:\n`;
+                                result += `Процесс 0: ${p3_25.toFixed(1)}\n`;
+                                result += `Процесс 1: ${p2_25.toFixed(1)}\n`;
+                                result += `Процесс 2: ${p1_25.toFixed(1)}\n`;
+                                result += `Процесс 3: ${p0_25.toFixed(1)}\n`;
+                                break;
+                                
+                            case '27':
+                                result = `MPIBegin27: Tag бойынша сұрыптау\n`;
+                                result += `================================\n`;
+                                
+                                // Собираем данные из всех процессов
+                                const pairs = [];
+                                
+                                for (let proc = 1; proc <= 3; proc++) {
+                                    const L = parseInt(document.getElementById(`task27-l${proc}`).value) || 2;
+                                    
+                                    for (let i = 0; i < L; i++) {
+                                        const A = parseFloat(document.getElementById(`task27-p${proc}-a${i}`).value) || 5.0;
+                                        const N = parseInt(document.getElementById(`task27-p${proc}-n${i}`).value) || 1;
+                                        
+                                        pairs.push({A, N, proc});
+                                    }
+                                }
+                                
+                                result += `Бас процесс ${pairs.length} хабарды күтуде...\n`;
+                                result += `================================\n`;
+                                
+                                // Сортируем по тегу N
+                                pairs.sort((a, b) => a.N - b.N);
+                                
+                                result += `Tag бойынша сұрыпталған (өсу реті):\n`;
+                                pairs.forEach(pair => {
+                                    result += `tag=${pair.N}: ${pair.A.toFixed(1)} (процесс ${pair.proc})\n`;
+                                });
+                                break;
+                                
+                            case '29':
+                                result = `MPIBegin29: MPI_Probe және tag\n`;
+                                result += `================================\n`;
+                                result += `Бас процесс MPI_Probe күтуде...\n`;
+                                
+                                // Собираем данные из всех процессов
+                                for (let proc = 1; proc <= 3; proc++) {
+                                    const T = parseInt(document.getElementById(`task29-t${proc}`).value) || 0;
+                                    const N = parseInt(document.getElementById(`task29-n${proc}`).value) || 2;
+                                    
+                                    result += `\nПроцесс ${proc} (T=${T}, N=${N}):\n`;
+                                    
+                                    const numbers = [];
+                                    for (let i = 0; i < N; i++) {
+                                        const num = parseFloat(document.getElementById(`task29-p${proc}-num${i}`).value) || (i+1);
+                                        numbers.push(num);
+                                    }
+                                    
+                                    if (T === 0) {
+                                        result += `  Бүтін сандар: ${numbers.map(n => n.toFixed(0)).join(' ')}\n`;
+                                    } else {
+                                        result += `  Нақты сандар: ${numbers.map(n => n.toFixed(2)).join(' ')}\n`;
+                                    }
+                                }
+                                
+                                result += `================================\n`;
+                                result += `Өсу ретімен қабылданды:\n`;
+                                
+                                // Выводим в порядке возрастания рангов
+                                for (let proc = 1; proc <= 3; proc++) {
+                                    const T = parseInt(document.getElementById(`task29-t${proc}`).value) || 0;
+                                    const N = parseInt(document.getElementById(`task29-n${proc}`).value) || 2;
+                                    
+                                    result += `Процесс ${proc} (T=${T}): `;
+                                    
+                                    for (let i = 0; i < N; i++) {
+                                        const num = parseFloat(document.getElementById(`task29-p${proc}-num${i}`).value) || (i+1);
+                                        result += (T === 0) ? `${num.toFixed(0)} ` : `${num.toFixed(2)} `;
+                                    }
+                                    result += `\n`;
+                                }
+                                break;
+                        }
+                        
+                        outputElement.textContent = result;
+                    }, 1500);
+                });
+            });
+            
+            // Функция копирования кода
+            window.copyCode = function(codeId) {
+                const codeElement = document.getElementById(codeId);
+                const codeText = codeElement.textContent;
+                
+                navigator.clipboard.writeText(codeText).then(() => {
+                    const btn = event.target.closest('.copy-btn');
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Көшірілді!';
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                    }, 2000);
+                });
+            };
+            
+            // Открыть первую задачу по умолчанию
+            if (accordionHeaders.length > 0) {
+                accordionHeaders[0].click();
+            }
+        });
+    </script>
+</body>
+</html>
