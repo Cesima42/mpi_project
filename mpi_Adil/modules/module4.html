@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 4: Коллективті операциялар және коммуникаторлар - MPI LAB</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* Стили из module3 с небольшими изменениями */
+        .accordion {
+            margin: 2rem 0;
+        }
+        
+        .accordion-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        
+        .accordion-header {
+            padding: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(46, 204, 113, 0.1); /* Зеленый для модуля 4 */
+            transition: var(--transition);
+        }
+        
+        .accordion-header:hover {
+            background: rgba(46, 204, 113, 0.15);
+        }
+        
+        .accordion-header.active {
+            background: rgba(46, 204, 113, 0.2);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .accordion-title {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .accordion-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .accordion-header.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+        
+        .accordion-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+        }
+        
+        .accordion-content.active {
+            padding: 1.5rem;
+            max-height: 5000px;
+        }
+        
+        /* Компактный стиль для инпутов */
+        .compact-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .compact-input {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        
+        .compact-input label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+        
+        .compact-input input, .compact-input select {
+            padding: 0.6rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+        
+        .compact-run-btn {
+            background: linear-gradient(135deg, #2ecc71, #27ae60); /* Зеленый */
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+        
+        .compact-run-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .compact-run-btn.running {
+            background: linear-gradient(135deg, var(--warning-color), #e67e22);
+        }
+        
+        /* Компактный вывод */
+        .compact-output {
+            background: var(--code-bg);
+            color: #f8f8f2;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+        
+        .task-number {
+            background: #2ecc71; /* Зеленый */
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .tasks-count {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--card-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .tasks-count h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Для сложных вводов */
+        .process-input-group {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.03);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .process-input-group h5 {
+            margin-top: 0;
+            color: var(--primary-color);
+            margin-bottom: 0.8rem;
+        }
+        
+        .array-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .array-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        
+        .array-item label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .section-title {
+            color: #2ecc71;
+            margin: 1.5rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(46, 204, 113, 0.2);
+        }
+        
+        .info-box {
+            background: rgba(46, 204, 113, 0.05);
+            border-left: 4px solid #2ecc71;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .group-indicator {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+        
+        .even-group {
+            background: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+        }
+        
+        .odd-group {
+            background: rgba(155, 89, 182, 0.2);
+            color: #8e44ad;
+        }
+        
+        .value-1-group {
+            background: rgba(241, 196, 15, 0.2);
+            color: #f39c12;
+        }
+        
+        .value-2-group {
+            background: rgba(231, 76, 60, 0.2);
+            color: #c0392b;
+        }
+        
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .matrix-cell {
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .matrix-cell input {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <span class="atu-badge">АТУ</span>
+                MPI<span class="lab-text">Орталығы</span>
+            </a>
+            <div class="nav-links">
+                <a href="../index.html"><i class="fas fa-home"></i> Басты</a>
+                <a href="../about.html"><i class="fas fa-info-circle"></i> Жоба туралы</a>
+                <a href="../basics.html"><i class="fas fa-book"></i> MPI теориясы</a>
+                <div class="dropdown">
+                    <a href="#" class="dropdown-toggle active"><i class="fas fa-cubes"></i> Модульдер <i class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-menu">
+                        <a href="module1.html"><i class="fas fa-microchip"></i> Модуль 1</a>
+                        <a href="module2.html"><i class="fas fa-exchange-alt"></i> Модуль 2</a>
+                        <a href="module3.html"><i class="fas fa-users"></i> Модуль 3</a>
+                        <a href="module4.html" class="active"><i class="fas fa-network-wired"></i> Модуль 4</a>
+                        <a href="module5.html"><i class="fas fa-project-diagram"></i> Модуль 5</a>
+                    </div>
+                </div>
+                <a href="../cloud.html"><i class="fas fa-cloud"></i> Бұлттық технологиялар</a>
+            </div>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <section class="module-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Модуль 4: Коллективті операциялар және коммуникаторлар</h1>
+                <p class="subtitle">Вариант 16: MPI_Bcast, MPI_Gather, MPI_Scatterv, MPI_Comm_split және басқалары</p>
+                <p class="description">
+                    Бұл модульде MPI коллективтік операцияларының кең спектрін және 
+                    коммуникаторлар мен процесс топтарымен жұмыс істеуді үйренедіз. 
+                    Вариант 16 бойынша 11 практикалық тапсырманы орындайсыз.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="module-content">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="../index.html">Басты</a> / 
+                <a href="../basics.html">MPI негіздері</a> / 
+                <span>Модуль 4: Коллективті операциялар және коммуникаторлар</span>
+            </div>
+
+            <div class="tasks-count">
+                <h3><i class="fas fa-tasks"></i> Вариант 16: 11 тапсырма</h3>
+                <p>Төмендегі тапсырмалардың әрқайсысын кеңейту арқылы ашып, орындауға болады.</p>
+                <div class="info-box">
+                    <p><strong>K = процесстер саны = 4</strong> (0-бас процесс + 3 бас емес процесс)</p>
+                    <p>Коллективтік деректер алмасу: 31, 33, 38, 40, 44, 45</p>
+                    <p>Процесс топтары және коммуникаторлар: 71, 75, 77, 79, 80</p>
+                </div>
+            </div>
+
+            <div class="accordion" id="tasksAccordion">
+                <!-- Task 31 - MPIBegin31 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="31">
+                        <div class="accordion-title">
+                            <i class="fas fa-broadcast-tower"></i> MPIBegin31
+                            <span class="task-number">1</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Бас процесте 5 саннан тұратын жиынтық берілген. MPI_Bcast функциясын пайдаланып, осы жиынтықты барлық бағынушы процесстерге жіберіп, оларда алынған сандарды дәл сол ретпен шығару.</p>
+                            <p><strong>K = 4 процесс, бас процесте 5 сан</strong></p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (бас процесте 5 сан):</h4>
+                            
+                            <div class="process-input-group">
+                                <h5>Бас процесс (ранг 0) үшін 5 сан:</h5>
+                                <div class="array-container" id="array31-0">
+                                    <!-- Динамически создадутся 5 полей -->
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="31">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Bcast)
+                            </button>
+                            
+                            <div class="compact-output" id="output31">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Bcast бір процестен барлық процесстерге деректерді жібереді. Бұл жағдайда бас процестен барлық бас емес процесстерге 5 сан жіберіледі.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin31.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task31-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task31-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+#define ARRAY_SIZE 5
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    int numbers[ARRAY_SIZE];
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Бас процесте деректерді толтыру
+    if (rank == 0) {
+        for (int i = 0; i < ARRAY_SIZE; i++) {
+            numbers[i] = (i + 1) * 10; // Мысал мәндер: 10, 20, 30, 40, 50
+        }
+        printf("Бас процесс (ранг 0): бастапқы сандар - ");
+        for (int i = 0; i < ARRAY_SIZE; i++) {
+            printf("%d ", numbers[i]);
+        }
+        printf("\n");
+    }
+    
+    // MPI_Bcast: бас процестен барлық процесстерге
+    MPI_Bcast(numbers, ARRAY_SIZE, MPI_INT, 0, MPI_COMM_WORLD);
+    
+    // Барлық процесстерде алынған сандарды шығару
+    printf("Процесс %d: MPI_Bcast арқылы алған сандар - ", rank);
+    for (int i = 0; i < ARRAY_SIZE; i++) {
+        printf("%d ", numbers[i]);
+    }
+    printf("\n");
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 33 - MPIBegin33 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="33">
+                        <div class="accordion-title">
+                            <i class="fas fa-inbox"></i> MPIBegin33
+                            <span class="task-number">2</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әр процесте 5 бүтін саннан тұратын жиынтық берілген. MPI_Gather функциясын пайдаланып, осы жиынтықтарды бас процесске жіберіп, алынған жиынтықтарды жіберген процесстер рангтерінің өсу ретімен шығару (бірінші болып бас процестегі сандар шығарылады).</p>
+                            <p><strong>K = 4 процесс, әрқайсысында 5 сан</strong></p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс, әрқайсысында 5 сан):</h4>
+                            
+                            <div class="process-input-group">
+                                <h5>Процесс 0 (бас) үшін 5 сан:</h5>
+                                <div class="array-container" id="array33-0">
+                                    <!-- Динамически создадутся 5 полей -->
+                                </div>
+                            </div>
+                            
+                            <div class="process-input-group">
+                                <h5>Процесс 1 үшін 5 сан:</h5>
+                                <div class="array-container" id="array33-1">
+                                    <!-- Динамически создадутся 5 полей -->
+                                </div>
+                            </div>
+                            
+                            <div class="process-input-group">
+                                <h5>Процесс 2 үшін 5 сан:</h5>
+                                <div class="array-container" id="array33-2">
+                                    <!-- Динамически создадутся 5 полей -->
+                                </div>
+                            </div>
+                            
+                            <div class="process-input-group">
+                                <h5>Процесс 3 үшін 5 сан:</h5>
+                                <div class="array-container" id="array33-3">
+                                    <!-- Динамически создадутся 5 полей -->
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="33">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Gather)
+                            </button>
+                            
+                            <div class="compact-output" id="output33">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Gather барлық процесстерден деректерді жинап, оларды бір процеске (әдетте бас процессқа) жібереді. Деректер рангтердің өсу ретімен орналасады.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin33.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task33-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task33-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+#define ARRAY_SIZE 5
+#define TOTAL_PROCESSES 4
+
+int main(int argc, char *argv[]) {
+    int rank;
+    int local_data[ARRAY_SIZE];
+    int gathered_data[ARRAY_SIZE * TOTAL_PROCESSES];
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    
+    // Әр процесте деректерді толтыру
+    for (int i = 0; i < ARRAY_SIZE; i++) {
+        local_data[i] = (rank + 1) * 100 + (i + 1) * 10;
+        // Мысал: процесс 0: 110, 120, 130, 140, 150
+        //        процесс 1: 210, 220, 230, 240, 250
+    }
+    
+    printf("Процесс %d: жергілікті деректер - ", rank);
+    for (int i = 0; i < ARRAY_SIZE; i++) {
+        printf("%d ", local_data[i]);
+    }
+    printf("\n");
+    
+    // MPI_Gather: барлық деректерді бас процесске жинау
+    MPI_Gather(local_data, ARRAY_SIZE, MPI_INT,
+               gathered_data, ARRAY_SIZE, MPI_INT,
+               0, MPI_COMM_WORLD);
+    
+    // Бас процесте барлық деректерді шығару
+    if (rank == 0) {
+        printf("\nБас процесс: MPI_Gather нәтижелері (өсу ретімен):\n");
+        for (int proc = 0; proc < TOTAL_PROCESSES; proc++) {
+            printf("Процесс %d: ", proc);
+            for (int i = 0; i < ARRAY_SIZE; i++) {
+                printf("%d ", gathered_data[proc * ARRAY_SIZE + i]);
+            }
+            printf("\n");
+        }
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 38 - MPIBegin38 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="38">
+                        <div class="accordion-title">
+                            <i class="fas fa-share-alt"></i> MPIBegin38
+                            <span class="task-number">3</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Бас процесте K(K+3)/2 бүтін саны бар (K - процесстер саны). MPI_Scatterv функциясын пайдаланып, осы сандарды әр процеске бөліп жіберу; R рангті процеске R+2 сан жіберіледі (0 процеске 2 сан, 1 процеске 3 сан, 2 процеске 4 сан, 3 процеске 5 сан). Әр процесте алынған сандарды шығару.</p>
+                            <p><strong>K = 4, K(K+3)/2 = 4*7/2 = 14 сан</strong></p>
+                            <p><strong>Бөлу: P0:2, P1:3, P2:4, P3:5 = барлығы 14 сан</strong></p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (бас процесте 14 сан):</h4>
+                            
+                            <div class="process-input-group">
+                                <h5>Бас процестегі 14 сан (әр процеске бөлінеді):</h5>
+                                <div class="array-container" id="array38-all">
+                                    <!-- Динамически создадутся 14 полей -->
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="38">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Scatterv)
+                            </button>
+                            
+                            <div class="compact-output" id="output38">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Scatterv әр процеске әртүрлі санындағы элементтерді жіберуге мүмкіндік береді. recvcounts массиві әр процеске қанша элемент жіберетінің көрсетеді, ал displacements қай позициядан бастап жіберуді көрсетеді.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin38.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task38-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task38-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size = 4; // K = 4
+    int total_numbers = size * (size + 3) / 2; // 14
+    int recv_counts[4];
+    int displacements[4];
+    int *all_data = NULL;
+    int *my_data = NULL;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процеске қанша сан келетінін есептеу
+    int my_count = rank + 2; // R+2: P0=2, P1=3, P2=4, P3=5
+    my_data = (int*)malloc(my_count * sizeof(int));
+    
+    if (rank == 0) {
+        // Бас процесте барлық сандарды толтыру
+        all_data = (int*)malloc(total_numbers * sizeof(int));
+        for (int i = 0; i < total_numbers; i++) {
+            all_data[i] = (i + 1) * 10; // 10, 20, 30, ..., 140
+        }
+        
+        printf("Бас процесс: барлық %d сан:\n", total_numbers);
+        for (int i = 0; i < total_numbers; i++) {
+            printf("%d ", all_data[i]);
+        }
+        printf("\n");
+        
+        // recv_counts және displacements есептеу
+        displacements[0] = 0;
+        for (int i = 0; i < size; i++) {
+            recv_counts[i] = i + 2; // R+2
+            if (i > 0) {
+                displacements[i] = displacements[i-1] + recv_counts[i-1];
+            }
+        }
+    }
+    
+    // Әр процеске оның өлшемін жіберу
+    MPI_Scatter(recv_counts, 1, MPI_INT, &my_count, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    
+    // recv_counts және displacements барлық процесстерге жіберу
+    MPI_Bcast(recv_counts, size, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(displacements, size, MPI_INT, 0, MPI_COMM_WORLD);
+    
+    // MPI_Scatterv: әр процеске оның сандарын жіберу
+    MPI_Scatterv(all_data, recv_counts, displacements, MPI_INT,
+                 my_data, my_count, MPI_INT,
+                 0, MPI_COMM_WORLD);
+    
+    // Әр процесте алынған сандарды шығару
+    printf("Процесс %d (R=%d, алған сандар саны=%d): ", rank, rank, my_count);
+    for (int i = 0; i < my_count; i++) {
+        printf("%d ", my_data[i]);
+    }
+    printf("\n");
+    
+    free(my_data);
+    if (rank == 0) free(all_data);
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 40 - MPIBegin40 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="40">
+                        <div class="accordion-title">
+                            <i class="fas fa-exchange-alt"></i> MPIBegin40
+                            <span class="task-number">4</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әр процесте бір нақты сан бар. MPI_Allgather функциясын пайдаланып, осы сандарды барлық процесстерге жіберіп, әр процесте алынған сандарды жіберген процесстер рангтерінің өсу ретімен шығару (өз процесінің санын қоса алғанда).</p>
+                            <p><strong>K = 4 процесс, әрқайсысында 1 нақты сан</strong></p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс, әрқайсысында 1 нақты сан):</h4>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 0 саны:</label>
+                                    <input type="number" id="task40-p0" value="3.14" step="0.01">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 1 саны:</label>
+                                    <input type="number" id="task40-p1" value="2.71" step="0.01">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 2 саны:</label>
+                                    <input type="number" id="task40-p2" value="1.41" step="0.01">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 3 саны:</label>
+                                    <input type="number" id="task40-p3" value="0.99" step="0.01">
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="40">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Allgather)
+                            </button>
+                            
+                            <div class="compact-output" id="output40">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Allgather әр процестен деректерді жинап, нәтижені барлық процесстерге жібереді. Бұл MPI_Gather + MPI_Bcast комбинациясына ұқсас.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin40.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task40-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task40-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    double my_number;
+    double all_numbers[4]; // K = 4
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процесте өз санын орнату
+    my_number = (rank + 1) * 1.5 + 0.1 * rank;
+    // Мысал: P0=1.5, P1=3.1, P2=4.7, P3=6.3
+    
+    printf("Процесс %d: менде саным бар = %.2f\n", rank, my_number);
+    
+    // MPI_Allgather: барлық сандарды барлық процесстерге
+    MPI_Allgather(&my_number, 1, MPI_DOUBLE,
+                  all_numbers, 1, MPI_DOUBLE,
+                  MPI_COMM_WORLD);
+    
+    // Әр процесте барлық сандарды шығару
+    printf("Процесс %d: барлық процесстерден сандар (өсу ретімен):\n", rank);
+    for (int i = 0; i < size; i++) {
+        printf("  Процесс %d: %.2f\n", i, all_numbers[i]);
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 44 - MPIBegin44 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="44">
+                        <div class="accordion-title">
+                            <i class="fas fa-th"></i> MPIBegin44
+                            <span class="task-number">5</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әр процесте 3K бүтін саны бар (K - процесстер саны). MPI_Alltoall функциясын пайдаланып, әр процестен әр процеске 3 сан жіберу (0 процеске әр процестен алғашқы 3 сан, 1 процеске келесі 3 сан, т.б.). Әр процесте алынған сандарды жіберген процесстер рангтерінің өсу ретімен шығару.</p>
+                            <p><strong>K = 4, 3K = 12 сан әр процесте</strong></p>
+                            <p><strong>Әр процестен әр процеске 3 сан = барлығы 12 сан алады</strong></p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс, әрқайсысында 12 сан):</h4>
+                            
+                            <button class="compact-run-btn" data-task="44">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Alltoall)
+                            </button>
+                            
+                            <div class="compact-output" id="output44">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Alltoall - бұл "барлықтан барлыққа" операциясы. Әр процесс әр процеске sendcount элемент жібереді және әр процестен recvcount элемент қабылдайды.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin44.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task44-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task44-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+#define K 4
+#define NUMBERS_PER_PROCESS 3  // Әр процестен әр процеске 3 сан
+#define TOTAL_PER_PROCESS (K * NUMBERS_PER_PROCESS) // 12
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    int send_data[TOTAL_PER_PROCESS];
+    int recv_data[TOTAL_PER_PROCESS];
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процесте деректерді толтыру
+    // Әр процесте 12 сан: rank * 1000 + [0..11]
+    for (int i = 0; i < TOTAL_PER_PROCESS; i++) {
+        send_data[i] = rank * 1000 + i + 1;
+        // Мысал: процесс 0: 1,2,3,...,12
+        //        процесс 1: 1001,1002,1003,...,1012
+    }
+    
+    printf("Процесс %d: жіберетін деректер (12 сан):\n", rank);
+    for (int i = 0; i < TOTAL_PER_PROCESS; i++) {
+        printf("%4d ", send_data[i]);
+        if ((i + 1) % 3 == 0) printf(" ");
+    }
+    printf("\n");
+    
+    // MPI_Alltoall: әр процестен әр процеске 3 сан
+    MPI_Alltoall(send_data, NUMBERS_PER_PROCESS, MPI_INT,
+                 recv_data, NUMBERS_PER_PROCESS, MPI_INT,
+                 MPI_COMM_WORLD);
+    
+    // Әр процесте алынған сандарды шығару
+    printf("\nПроцесс %d: MPI_Alltoall нәтижелері:\n", rank);
+    for (int src = 0; src < size; src++) {
+        printf("  Процесс %d-ден: ", src);
+        for (int j = 0; j < NUMBERS_PER_PROCESS; j++) {
+            printf("%4d ", recv_data[src * NUMBERS_PER_PROCESS + j]);
+        }
+        printf("\n");
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 45 - MPIBegin45 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="45">
+                        <div class="accordion-title">
+                            <i class="fas fa-th-large"></i> MPIBegin45
+                            <span class="task-number">6</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әр процесте K(K+1)/2 бүтін саны бар. MPI_Alltoallv функциясын пайдаланып, әр процестен әр процеске R+1 сан жіберу (R - қабылдаушы процестің рангі). Әр процесте алынған сандарды шығару.</p>
+                            <p><strong>K = 4, K(K+1)/2 = 10 сан әр процесте</strong></p>
+                            <p><strong>Бөлу: 0 процеске 1 сан әр процестен (барлығы 4)</strong></p>
+                            <p><strong>Бөлу: 1 процеске 2 сан әр процестен (барлығы 8)</strong></p>
+                            <p><strong>Бөлу: 2 процеске 3 сан әр процестен (барлығы 12)</strong></p>
+                            <p><strong>Бөлу: 3 процеске 4 сан әр процестен (барлығы 16)</strong></p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс, әрқайсысында 10 сан):</h4>
+                            
+                            <button class="compact-run-btn" data-task="45">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Alltoallv)
+                            </button>
+                            
+                            <div class="compact-output" id="output45">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Alltoallv - бұл ең жалпы "барлықтан барлыққа" операциясы. sendcounts және sdispls әр процеске қанша элемент жіберетінін көрсетеді, ал recvcounts және rdispls қанша элемент қабылдайтының көрсетеді.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin45.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task45-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task45-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size = 4; // K = 4
+    int send_count = size * (size + 1) / 2; // 10
+    int *send_data = NULL;
+    int *recv_data = NULL;
+    int send_counts[4], sdispls[4];
+    int recv_counts[4], rdispls[4];
+    int total_recv = 0;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процесте жіберетін деректерді толтыру
+    send_data = (int*)malloc(send_count * sizeof(int));
+    for (int i = 0; i < send_count; i++) {
+        send_data[i] = rank * 100 + i + 1; // Мысал мәндер
+    }
+    
+    // send_counts және sdispls есептеу
+    // Әр процеске R+1 сан жіберу (R - қабылдаушы ранг)
+    for (int dest = 0; dest < size; dest++) {
+        send_counts[dest] = dest + 1; // R+1
+    }
+    
+    sdispls[0] = 0;
+    for (int i = 1; i < size; i++) {
+        sdispls[i] = sdispls[i-1] + send_counts[i-1];
+    }
+    
+    // recv_counts және rdispls есептеу
+    // Әр процеске rank+1 сан келеді әр процестен
+    for (int src = 0; src < size; src++) {
+        recv_counts[src] = rank + 1; // Бізге rank+1 сан келеді әр процестен
+    }
+    
+    rdispls[0] = 0;
+    for (int i = 1; i < size; i++) {
+        rdispls[i] = rdispls[i-1] + recv_counts[i-1];
+    }
+    
+    // Жалпы қабылданатын элементтер санын есептеу
+    for (int i = 0; i < size; i++) {
+        total_recv += recv_counts[i];
+    }
+    
+    recv_data = (int*)malloc(total_recv * sizeof(int));
+    
+    printf("Процесс %d: жіберетін %d сан:\n", rank, send_count);
+    for (int i = 0; i < send_count; i++) {
+        printf("%3d ", send_data[i]);
+    }
+    printf("\n");
+    
+    // MPI_Alltoallv: әртүрлі өлшемді деректер алмасу
+    MPI_Alltoallv(send_data, send_counts, sdispls, MPI_INT,
+                  recv_data, recv_counts, rdispls, MPI_INT,
+                  MPI_COMM_WORLD);
+    
+    // Әр процесте алынған сандарды шығару
+    printf("\nПроцесс %d: MPI_Alltoallv нәтижелері (барлығы %d сан):\n", 
+           rank, total_recv);
+    
+    int pos = 0;
+    for (int src = 0; src < size; src++) {
+        printf("  Процесс %d-ден (%d сан): ", src, recv_counts[src]);
+        for (int j = 0; j < recv_counts[src]; j++) {
+            printf("%3d ", recv_data[pos++]);
+        }
+        printf("\n");
+    }
+    
+    free(send_data);
+    free(recv_data);
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 71 - MPIBegin71 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="71">
+                        <div class="accordion-title">
+                            <i class="fas fa-filter"></i> MPIBegin71
+                            <span class="task-number">7</span>
+                            <span class="group-indicator even-group">Жұп рангтер</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Бас процесте K бүтін саны бар (K - жұп рангті процесстер саны). MPI_Comm_group, MPI_Group_incl және MPI_Comm_create функцияларын пайдаланып, жұп рангті процесстерден тұратын жаңа коммуникатор жасау. Осы жаңа коммуникатор үшін бір коллективтік операцияны пайдаланып, әр жұп рангті процеске бір сан жіберіп, алынған сандарды шығару (бас процесті қоса алғанда).</p>
+                            <p><strong>K = 4, жұп рангтер: 0, 2</strong></p>
+                            <p><strong>Бас процесте 2 сан (жұп процесстер саны)</strong></p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (бас процесте 2 сан):</h4>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 0 үшін сан:</label>
+                                    <input type="number" id="task71-p0" value="100" step="1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 2 үшін сан:</label>
+                                    <input type="number" id="task71-p2" value="200" step="1">
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="71">
+                                <i class="fas fa-play"></i> Іске қосу (Коммуникатор + MPI_Scatter)
+                            </button>
+                            
+                            <div class="compact-output" id="output71">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Comm_create жаңа коммуникатор жасайды, оған тек белгілі бір процесстер кіреді. Бұл процесстер топтарымен жұмыс істеуге мүмкіндік береді.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin71.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task71-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task71-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    MPI_Group world_group, even_group;
+    MPI_Comm even_comm;
+    int even_ranks[2] = {0, 2}; // Жұп рангтер: 0 және 2
+    int even_size;
+    int even_rank;
+    int data[2]; // Бас процесте 2 сан
+    int my_number;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Бүкіл әлемдік тобын алу
+    MPI_Comm_group(MPI_COMM_WORLD, &world_group);
+    
+    // Жұп рангті процесстер тобын жасау
+    MPI_Group_incl(world_group, 2, even_ranks, &even_group);
+    
+    // Жаңа коммуникатор жасау
+    MPI_Comm_create(MPI_COMM_WORLD, even_group, &even_comm);
+    
+    // Егер процесс жұп рангті болса
+    if (rank == 0 || rank == 2) {
+        // Жаңа коммуникатордағы мәліметтер
+        MPI_Comm_size(even_comm, &even_size);
+        MPI_Comm_rank(even_comm, &even_rank);
+        
+        if (rank == 0) { // Бас процесс жаңа коммуникаторда да бас
+            data[0] = 100; // Процесс 0 үшін
+            data[1] = 200; // Процесс 2 үшін
+            printf("Бас процесс (ранг 0): жіберетін сандар: %d (өзім үшін), %d (процесс 2 үшін)\n",
+                   data[0], data[1]);
+        }
+        
+        // MPI_Scather жаңа коммуникаторда
+        MPI_Scatter(data, 1, MPI_INT, &my_number, 1, MPI_INT, 0, even_comm);
+        
+        printf("Процесс %d (жаңа коммуникаторда ранг %d): алған сан = %d\n",
+               rank, even_rank, my_number);
+    } else {
+        printf("Процесс %d: жұп ранг емес, коммуникаторға кірмейді\n", rank);
+    }
+    
+    // Топтар мен коммуникаторларды босату
+    if (rank == 0 || rank == 2) {
+        MPI_Comm_free(&even_comm);
+    }
+    MPI_Group_free(&even_group);
+    MPI_Group_free(&world_group);
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 75 - MPIBegin75 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="75">
+                        <div class="accordion-title">
+                            <i class="fas fa-chart-line"></i> MPIBegin75
+                            <span class="task-number">8</span>
+                            <span class="group-indicator even-group">Жұп</span>
+                            <span class="group-indicator odd-group">Тақ</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әр процесте бір нақты сан бар. MPI_Comm_split және бір коллективтік редукция операциясын пайдаланып, жұп рангті процесстердегі (бас процесті қоса алғанда) сандардың максимумын және тақ рангті процесстердегі сандардың минимумын табу. Табылған максимумды 0 процесінде, ал минимумды 1 процесінде шығару.</p>
+                            <p><strong>K = 4 процесс</strong></p>
+                            <p><strong>Жұп рангтер (0, 2): максимумды іздеу</strong></p>
+                            <p><strong>Тақ рангтер (1, 3): минимумды іздеу</strong></p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс, әрқайсысында 1 нақты сан):</h4>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 0 (жұп):</label>
+                                    <input type="number" id="task75-p0" value="5.5" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 1 (тақ):</label>
+                                    <input type="number" id="task75-p1" value="3.2" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 2 (жұп):</label>
+                                    <input type="number" id="task75-p2" value="7.1" step="0.1">
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 3 (тақ):</label>
+                                    <input type="number" id="task75-p3" value="1.8" step="0.1">
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="75">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Comm_split + MPI_Reduce)
+                            </button>
+                            
+                            <div class="compact-output" id="output75">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Comm_split процесстерді олардың рангтеріне немесе басқа критерийлерге байланысты топтарға бөледі. Бұл жағдайда жұп және тақ рангтерге бөлінеді.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin75.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task75-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task75-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    double my_number;
+    double result;
+    MPI_Comm new_comm;
+    int color; // Топ түсі: 0 - жұп, 1 - тақ
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процесте өз санын орнату
+    my_number = (rank + 1) * 2.5; // Мысал мәндер
+    
+    // Топты анықтау: жұп рангтер үшін 0, тақ рангтер үшін 1
+    color = rank % 2;
+    
+    printf("Процесс %d: менде саным бар = %.2f, топ = %s\n",
+           rank, my_number, (color == 0) ? "жұп" : "тақ");
+    
+    // Процесстерді топтарға бөлу
+    MPI_Comm_split(MPI_COMM_WORLD, color, rank, &new_comm);
+    
+    int new_rank, new_size;
+    MPI_Comm_rank(new_comm, &new_rank);
+    MPI_Comm_size(new_comm, &new_size);
+    
+    // Әр топта редукция операциясын орындау
+    if (color == 0) { // Жұп рангтер тобы
+        // Максимумды іздеу
+        MPI_Reduce(&my_number, &result, 1, MPI_DOUBLE,
+                   MPI_MAX, 0, new_comm);
+        
+        if (new_rank == 0) {
+            printf("\nЖұп рангтер тобы (0, 2): максимум = %.2f\n", result);
+            printf("Процесс 0: жұп рангтердің максимумы = %.2f\n", result);
+        }
+    } else { // Тақ рангтер тобы
+        // Минимумды іздеу
+        MPI_Reduce(&my_number, &result, 1, MPI_DOUBLE,
+                   MPI_MIN, 0, new_comm);
+        
+        if (new_rank == 0) {
+            printf("\nТақ рангтер тобы (1, 3): минимум = %.2f\n", result);
+            // Бұл нәтижені процесс 1-ге жіберу керек (есептің шарты бойынша)
+            printf("Процесс 1: тақ рангтердің минимумы = %.2f\n", result);
+        }
+    }
+    
+    MPI_Comm_free(&new_comm);
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 77 - MPIBegin77 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="77">
+                        <div class="accordion-title">
+                            <i class="fas fa-sort-amount-up"></i> MPIBegin77
+                            <span class="task-number">9</span>
+                            <span class="group-indicator value-1-group">N=1</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әр процесте бүтін N саны бар (0 немесе 1, кемінде бір процесте N=1). Сонымен қатар, N=1 процесстерінде нақты A саны бар. MPI_Comm_split және бір коллективтік деректер алмасу операциясын пайдаланып, A сандарын N=1 процесстерінің біріншісіне жіберіп, алынған сандарды жіберген процесстер рангтерінің өсу ретімен шығару (өз процесінің санын қоса алғанда).</p>
+                            <p><strong>Кемінде бір процесте N=1 болуы керек</strong></p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс):</h4>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 0 N (0/1):</label>
+                                    <select id="task77-p0-n">
+                                        <option value="1">1</option>
+                                        <option value="0">0</option>
+                                    </select>
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 0 A (егер N=1):</label>
+                                    <input type="number" id="task77-p0-a" value="10.5" step="0.1">
+                                </div>
+                            </div>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 1 N (0/1):</label>
+                                    <select id="task77-p1-n">
+                                        <option value="1">1</option>
+                                        <option value="0">0</option>
+                                    </select>
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 1 A (егер N=1):</label>
+                                    <input type="number" id="task77-p1-a" value="20.5" step="0.1">
+                                </div>
+                            </div>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 2 N (0/1):</label>
+                                    <select id="task77-p2-n">
+                                        <option value="0">0</option>
+                                        <option value="1">1</option>
+                                    </select>
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 2 A (егер N=1):</label>
+                                    <input type="number" id="task77-p2-a" value="30.5" step="0.1">
+                                </div>
+                            </div>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 3 N (0/1):</label>
+                                    <select id="task77-p3-n">
+                                        <option value="1">1</option>
+                                        <option value="0">0</option>
+                                    </select>
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 3 A (егер N=1):</label>
+                                    <input type="number" id="task77-p3-a" value="40.5" step="0.1">
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="77">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Comm_split + MPI_Gather)
+                            </button>
+                            
+                            <div class="compact-output" id="output77">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Comm_split процесстерді N мәніне байланысты топтарға бөледі. N=1 процесстері бір топқа, N=0 процесстері екінші топқа кіреді (немесе MPI_UNDEFINED алады).</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin77.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task77-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task77-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    int N;
+    double A;
+    MPI_Comm active_comm;
+    int color;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    // Әр процесте N және A мәндерін орнату
+    // Мысал: процесстер 0,1,3 N=1, процесс 2 N=0
+    if (rank == 0) { N = 1; A = 10.5; }
+    else if (rank == 1) { N = 1; A = 20.5; }
+    else if (rank == 2) { N = 0; A = 0.0; }
+    else if (rank == 3) { N = 1; A = 40.5; }
+    
+    printf("Процесс %d: N = %d", rank, N);
+    if (N == 1) printf(", A = %.1f", A);
+    printf("\n");
+    
+    // Топты анықтау: N=1 процесстері үшін 0, N=0 процесстері үшін MPI_UNDEFINED
+    color = (N == 1) ? 0 : MPI_UNDEFINED;
+    
+    // Процесстерді топтарға бөлу
+    MPI_Comm_split(MPI_COMM_WORLD, color, rank, &active_comm);
+    
+    // Егер процесс N=1 болса
+    if (N == 1) {
+        int active_rank, active_size;
+        MPI_Comm_rank(active_comm, &active_rank);
+        MPI_Comm_size(active_comm, &active_size);
+        
+        double *all_A = NULL;
+        if (active_rank == 0) {
+            all_A = (double*)malloc(active_size * sizeof(double));
+        }
+        
+        // MPI_Gather: барлық A сандарын бірінші процесске жинау
+        MPI_Gather(&A, 1, MPI_DOUBLE,
+                   all_A, 1, MPI_DOUBLE,
+                   0, active_comm);
+        
+        // Бірінші процесте барлық сандарды шығару
+        if (active_rank == 0) {
+            printf("\nN=1 процесстерінің біріншісі (жаңа коммуникаторда ранг 0):\n");
+            printf("Барлық A сандары (өсу ретімен):\n");
+            
+            // Сандарды шығару (біз оларды MPI_Gather арқылы жинадық)
+            // Нақты бағдарламада біз бұл мәндерді қалай алғанымызды білеміз
+            printf("Алынған сандар: ");
+            for (int i = 0; i < active_size; i++) {
+                printf("%.1f ", all_A[i]);
+            }
+            printf("\n");
+            
+            free(all_A);
+        }
+        
+        MPI_Comm_free(&active_comm);
+    } else {
+        printf("Процесс %d: N=0, активті коммуникаторға кірмейді\n", rank);
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 79 - MPIBegin79 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="79">
+                        <div class="accordion-title">
+                            <i class="fas fa-users"></i> MPIBegin79
+                            <span class="task-number">10</span>
+                            <span class="group-indicator value-1-group">N=1</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әр процесте бүтін N саны бар (0 немесе 1, кемінде бір процесте N=1). Сонымен қатар, N=1 процесстерінде нақты A саны бар. MPI_Comm_split және бір коллективтік деректер алмасу операциясын пайдаланып, A сандарын барлық N=1 процесстеріне жіберіп, алынған сандарды жіберген процесстер рангтерінің өсу ретімен шығару (өз процесінің санын қоса алғанда).</p>
+                            <p><strong>Кемінде бір процесте N=1 болуы керек</strong></p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс):</h4>
+                            
+                            <button class="compact-run-btn" data-task="79">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Comm_split + MPI_Allgather)
+                            </button>
+                            
+                            <div class="compact-output" id="output79">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>77-тапсырмаға ұқсас, бірақ бұл жерде A сандары барлық N=1 процесстеріне жіберіледі (тек бір процеске емес). MPI_Allgather қолданылады.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin79.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task79-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task79-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank;
+    int N;
+    double A;
+    MPI_Comm active_comm;
+    int color;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    
+    // Әр процесте N және A мәндерін орнату
+    // Мысал: процесстер 0,1,3 N=1, процесс 2 N=0
+    if (rank == 0) { N = 1; A = 10.5; }
+    else if (rank == 1) { N = 1; A = 20.5; }
+    else if (rank == 2) { N = 0; A = 0.0; }
+    else if (rank == 3) { N = 1; A = 40.5; }
+    
+    // Топты анықтау: N=1 процесстері үшін 0, N=0 процесстері үшін MPI_UNDEFINED
+    color = (N == 1) ? 0 : MPI_UNDEFINED;
+    
+    // Процесстерді топтарға бөлу
+    MPI_Comm_split(MPI_COMM_WORLD, color, rank, &active_comm);
+    
+    // Егер процесс N=1 болса
+    if (N == 1) {
+        int active_rank, active_size;
+        MPI_Comm_rank(active_comm, &active_rank);
+        MPI_Comm_size(active_comm, &active_size);
+        
+        double *all_A = (double*)malloc(active_size * sizeof(double));
+        
+        // MPI_Allgather: барлық A сандарын барлық N=1 процесстеріне
+        MPI_Allgather(&A, 1, MPI_DOUBLE,
+                      all_A, 1, MPI_DOUBLE,
+                      active_comm);
+        
+        // Әр N=1 процесінде барлық сандарды шығару
+        printf("Процесс %d (N=1, жаңа коммуникаторда ранг %d):\n", 
+               rank, active_rank);
+        printf("Барлық A сандары N=1 процесстерінен (өсу ретімен):\n");
+        for (int i = 0; i < active_size; i++) {
+            printf("  Сан %d: %.1f\n", i, all_A[i]);
+        }
+        
+        free(all_A);
+        MPI_Comm_free(&active_comm);
+    } else {
+        printf("Процесс %d: N=0, активті коммуникаторға кірмейді\n", rank);
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 80 - MPIBegin80 -->
+                <div class="accordion-item">
+                    <div class="accordion-header" data-task="80">
+                        <div class="accordion-title">
+                            <i class="fas fa-code-branch"></i> MPIBegin80
+                            <span class="task-number">11</span>
+                            <span class="group-indicator value-1-group">N=1</span>
+                            <span class="group-indicator value-2-group">N=2</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="task-description">
+                            <p><strong>Тапсырма:</strong> Әр процесте бүтін N саны бар (1 немесе 2, әр мән үшін кемінде бір процесс бар). Сонымен қатар, әр процесте бүтін A саны бар. MPI_Comm_split және бір коллективтік деректер алмасу операциясын пайдаланып, N=1 процесстеріндегі A сандарын барлық N=1 процесстеріне, ал N=2 процесстеріндегі A сандарын барлық N=2 процесстеріне жіберу. Барлық процесстерде алынған сандарды жіберген процесстер рангтерінің өсу ретімен шығару (өз процесінің санын қоса алғанда).</p>
+                        </div>
+                        
+                        <div class="code-execution">
+                            <h4><i class="fas fa-play-circle"></i> Енгізу деректері (4 процесс):</h4>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 0 N (1/2):</label>
+                                    <select id="task80-p0-n">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                    </select>
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 0 A:</label>
+                                    <input type="number" id="task80-p0-a" value="100" step="1">
+                                </div>
+                            </div>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 1 N (1/2):</label>
+                                    <select id="task80-p1-n">
+                                        <option value="2">2</option>
+                                        <option value="1">1</option>
+                                    </select>
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 1 A:</label>
+                                    <input type="number" id="task80-p1-a" value="200" step="1">
+                                </div>
+                            </div>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 2 N (1/2):</label>
+                                    <select id="task80-p2-n">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                    </select>
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 2 A:</label>
+                                    <input type="number" id="task80-p2-a" value="300" step="1">
+                                </div>
+                            </div>
+                            
+                            <div class="compact-inputs">
+                                <div class="compact-input">
+                                    <label>Процесс 3 N (1/2):</label>
+                                    <select id="task80-p3-n">
+                                        <option value="2">2</option>
+                                        <option value="1">1</option>
+                                    </select>
+                                </div>
+                                <div class="compact-input">
+                                    <label>Процесс 3 A:</label>
+                                    <input type="number" id="task80-p3-a" value="400" step="1">
+                                </div>
+                            </div>
+                            
+                            <button class="compact-run-btn" data-task="80">
+                                <i class="fas fa-play"></i> Іске қосу (MPI_Comm_split + MPI_Allgather)
+                            </button>
+                            
+                            <div class="compact-output" id="output80">
+                                Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...
+                            </div>
+                        </div>
+                        
+                        <div class="explanation">
+                            <h4><i class="fas fa-lightbulb"></i> Негізгі идея:</h4>
+                            <p>MPI_Comm_split процесстерді N мәніне байланысты екі топқа бөледі: N=1 және N=2. Әр топ өз коммуникаторында MPI_Allgather операциясын орындайды.</p>
+                        </div>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin80.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" onclick="copyCode('task80-code')">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+<pre id="task80-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank;
+    int N, A;
+    MPI_Comm group_comm;
+    int color;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    
+    // Әр процесте N және A мәндерін орнату
+    // Мысал: процесстер 0,2 N=1, процесстер 1,3 N=2
+    if (rank == 0) { N = 1; A = 100; }
+    else if (rank == 1) { N = 2; A = 200; }
+    else if (rank == 2) { N = 1; A = 300; }
+    else if (rank == 3) { N = 2; A = 400; }
+    
+    printf("Процесс %d: N = %d, A = %d\n", rank, N, A);
+    
+    // Топты анықтау: N мәнін түс ретінде қолдану
+    color = N; // 1 немесе 2
+    
+    // Процесстерді топтарға бөлу
+    MPI_Comm_split(MPI_COMM_WORLD, color, rank, &group_comm);
+    
+    int group_rank, group_size;
+    MPI_Comm_rank(group_comm, &group_rank);
+    MPI_Comm_size(group_comm, &group_size);
+    
+    int *all_A = (int*)malloc(group_size * sizeof(int));
+    
+    // MPI_Allgather: топтағы барлық A сандарын барлық процесстерге
+    MPI_Allgather(&A, 1, MPI_INT,
+                  all_A, 1, MPI_INT,
+                  group_comm);
+    
+    // Әр процесте топтағы барлық сандарды шығару
+    printf("\nПроцесс %d (N=%d, жаңа коммуникаторда ранг %d):\n", 
+           rank, N, group_rank);
+    printf("Топтағы барлық A сандары (өсу ретімен):\n");
+    for (int i = 0; i < group_size; i++) {
+        printf("  Сан %d: %d\n", i, all_A[i]);
+    }
+    
+    free(all_A);
+    MPI_Comm_free(&group_comm);
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>MPI<span>LAB</span></h3>
+                    <p>Жоғары өнімді есептеулер және параллельдік бағдарламалау бойынша оқу ресурсы</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Беттер</h4>
+                    <ul>
+                        <li><a href="../index.html">Басты бет</a></li>
+                        <li><a href="../about.html">Жоба туралы</a></li>
+                        <li><a href="../basics.html">MPI теориясы</a></li>
+                        <li><a href="../cloud.html">Бұлттық технологиялар</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Модульдер</h4>
+                    <ul>
+                        <li><a href="module1.html">Модуль 1: Процессер рангтары</a></li>
+                        <li><a href="module2.html">Модуль 2: Хабар алмасу</a></li>
+                        <li><a href="module3.html">Модуль 3: Жиынтық операциялар</a></li>
+                        <li><a href="module4.html" class="active">Модуль 4: Коллективті операциялар</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Байланыс</h4>
+                    <p><i class="fas fa-user-graduate"></i> Жетекші: Букенова Индира Нурмуханбетовна</p>
+                    <p><i class="fas fa-calendar"></i> 2024 жыл</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 MPI LAB - Барлық құқықтар қорғалған</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Заполняем массивы для задач
+            function createArrayInputs(taskId, processNum, arraySize, defaultValueFunc) {
+                const container = document.getElementById(`${taskId}-${processNum}`);
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                for (let i = 0; i < arraySize; i++) {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'array-item';
+                    
+                    const defaultValue = defaultValueFunc ? defaultValueFunc(i) : (processNum * 10 + i + 1) * 10;
+                    
+                    itemDiv.innerHTML = `
+                        <label>[${i}]:</label>
+                        <input type="number" id="${taskId}-${processNum}-${i}" 
+                               value="${defaultValue}" 
+                               step="1">
+                    `;
+                    container.appendChild(itemDiv);
+                }
+            }
+            
+            // Инициализация массивов для задач
+            // Задача 31: бас процесте 5 сан
+            createArrayInputs('array31', 0, 5, i => (i + 1) * 10);
+            
+            // Задача 33: 4 процессте 5 сан
+            for (let proc = 0; proc < 4; proc++) {
+                createArrayInputs('array33', proc, 5, i => (proc + 1) * 100 + (i + 1) * 10);
+            }
+            
+            // Задача 38: бас процесте 14 сан
+            createArrayInputs('array38-all', 'all', 14, i => (i + 1) * 10);
+            
+            // Аккордеон функционал
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+            
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('.accordion-icon');
+                    
+                    // Закрыть все остальные
+                    document.querySelectorAll('.accordion-content.active').forEach(activeContent => {
+                        if (activeContent !== content) {
+                            activeContent.classList.remove('active');
+                            activeContent.previousElementSibling.classList.remove('active');
+                        }
+                    });
+                    
+                    // Переключить текущий
+                    this.classList.toggle('active');
+                    content.classList.toggle('active');
+                });
+            });
+            
+            // Обработка выполнения задач
+            const runButtons = document.querySelectorAll('.compact-run-btn');
+            
+            runButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const taskId = this.getAttribute('data-task');
+                    const outputElement = document.getElementById(`output${taskId}`);
+                    
+                    this.classList.add('running');
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Орындалуда...';
+                    outputElement.textContent = 'MPI бағдарламасы іске қосылуда...\n';
+                    
+                    setTimeout(() => {
+                        this.classList.remove('running');
+                        this.innerHTML = originalText;
+                        
+                        let result = '';
+                        switch(taskId) {
+                            case '31':
+                                // MPIBegin31: MPI_Bcast
+                                result = `MPIBegin31: MPI_Bcast\n`;
+                                result += `================================\n`;
+                                result += `Бас процесс (ранг 0) 5 санды барлық процесстерге жібереді:\n`;
+                                result += `Жіберілетін сандар: 10, 20, 30, 40, 50\n\n`;
+                                
+                                for (let proc = 0; proc < 4; proc++) {
+                                    result += `Процесс ${proc}: MPI_Bcast арқылы алған сандар:\n`;
+                                    result += `  10 20 30 40 50\n`;
+                                    if (proc < 3) result += `--------------------------------\n`;
+                                }
+                                break;
+                                
+                            case '33':
+                                // MPIBegin33: MPI_Gather
+                                result = `MPIBegin33: MPI_Gather\n`;
+                                result += `================================\n`;
+                                result += `Әр процесте 5 сан бар. Бас процеске жиналады:\n\n`;
+                                result += `Бас процесс (ранг 0) нәтижелері (өсу ретімен):\n`;
+                                
+                                for (let proc = 0; proc < 4; proc++) {
+                                    result += `Процесс ${proc}: `;
+                                    for (let i = 0; i < 5; i++) {
+                                        const val = (proc + 1) * 100 + (i + 1) * 10;
+                                        result += `${val} `;
+                                    }
+                                    result += `\n`;
+                                }
+                                break;
+                                
+                            case '38':
+                                // MPIBegin38: MPI_Scatterv
+                                result = `MPIBegin38: MPI_Scatterv\n`;
+                                result += `================================\n`;
+                                result += `Бас процесте 14 сан: 10,20,30,40,50,60,70,80,90,100,110,120,130,140\n\n`;
+                                result += `Әр процеске R+2 сан жіберіледі:\n`;
+                                result += `Процесс 0 (R=0, 2 сан): 10 20\n`;
+                                result += `Процесс 1 (R=1, 3 сан): 30 40 50\n`;
+                                result += `Процесс 2 (R=2, 4 сан): 60 70 80 90\n`;
+                                result += `Процесс 3 (R=3, 5 сан): 100 110 120 130 140\n`;
+                                break;
+                                
+                            case '40':
+                                // MPIBegin40: MPI_Allgather
+                                const num40_0 = parseFloat(document.getElementById('task40-p0').value) || 3.14;
+                                const num40_1 = parseFloat(document.getElementById('task40-p1').value) || 2.71;
+                                const num40_2 = parseFloat(document.getElementById('task40-p2').value) || 1.41;
+                                const num40_3 = parseFloat(document.getElementById('task40-p3').value) || 0.99;
+                                
+                                result = `MPIBegin40: MPI_Allgather\n`;
+                                result += `================================\n`;
+                                result += `Әр процесте 1 нақты сан бар. Барлық процесстерге жіберіледі:\n\n`;
+                                
+                                for (let proc = 0; proc < 4; proc++) {
+                                    result += `Процесс ${proc}: барлық процесстерден сандар (өсу ретімен):\n`;
+                                    result += `  Процесс 0: ${num40_0.toFixed(2)}\n`;
+                                    result += `  Процесс 1: ${num40_1.toFixed(2)}\n`;
+                                    result += `  Процесс 2: ${num40_2.toFixed(2)}\n`;
+                                    result += `  Процесс 3: ${num40_3.toFixed(2)}\n`;
+                                    if (proc < 3) result += `--------------------------------\n`;
+                                }
+                                break;
+                                
+                            case '44':
+                                // MPIBegin44: MPI_Alltoall
+                                result = `MPIBegin44: MPI_Alltoall\n`;
+                                result += `================================\n`;
+                                result += `Әр процесте 12 сан бар. Әр процестен әр процеске 3 сан жіберіледі:\n\n`;
+                                
+                                for (let proc = 0; proc < 4; proc++) {
+                                    result += `Процесс ${proc} нәтижелері:\n`;
+                                    for (let src = 0; src < 4; src++) {
+                                        result += `  Процесс ${src}-ден: `;
+                                        for (let j = 0; j < 3; j++) {
+                                            const val = src * 1000 + proc * 3 + j + 1;
+                                            result += `${val} `;
+                                        }
+                                        result += `\n`;
+                                    }
+                                    if (proc < 3) result += `--------------------------------\n`;
+                                }
+                                break;
+                                
+                            case '45':
+                                // MPIBegin45: MPI_Alltoallv
+                                result = `MPIBegin45: MPI_Alltoallv\n`;
+                                result += `================================\n`;
+                                result += `Әр процесте 10 сан бар. Әр процестен әр процеске R+1 сан:\n\n`;
+                                
+                                // Мысал мәндер
+                                const counts = [1, 2, 3, 4]; // Әр процеске келетін сандар саны
+                                const totalRecv = [4, 8, 12, 16]; // Әр процестегі жалпы сандар саны
+                                
+                                for (let proc = 0; proc < 4; proc++) {
+                                    result += `Процесс ${proc} (R=${proc}, барлығы ${totalRecv[proc]} сан):\n`;
+                                    let value = 1;
+                                    for (let src = 0; src < 4; src++) {
+                                        result += `  Процесс ${src}-ден (${counts[proc]} сан): `;
+                                        for (let j = 0; j < counts[proc]; j++) {
+                                            result += `${src * 100 + value++} `;
+                                        }
+                                        result += `\n`;
+                                    }
+                                    if (proc < 3) result += `--------------------------------\n`;
+                                }
+                                break;
+                                
+                            case '71':
+                                // MPIBegin71: Коммуникатор + MPI_Scatter
+                                const num71_0 = parseInt(document.getElementById('task71-p0').value) || 100;
+                                const num71_2 = parseInt(document.getElementById('task71-p2').value) || 200;
+                                
+                                result = `MPIBegin71: Коммуникатор + MPI_Scatter\n`;
+                                result += `================================\n`;
+                                result += `Жұп рангті процесстер (0, 2) үшін жаңа коммуникатор жасалды:\n\n`;
+                                result += `Бас процесс (жаңа коммуникаторда да бас):\n`;
+                                result += `  Жіберетін сандар: ${num71_0} (өзім үшін), ${num71_2} (процесс 2 үшін)\n\n`;
+                                result += `Процесс 0 (жаңа коммуникаторда ранг 0): алған сан = ${num71_0}\n`;
+                                result += `Процесс 2 (жаңа коммуникаторда ранг 1): алған сан = ${num71_2}\n`;
+                                result += `Процесс 1: жұп ранг емес, коммуникаторға кірмейді\n`;
+                                result += `Процесс 3: жұп ранг емес, коммуникаторға кірмейді\n`;
+                                break;
+                                
+                            case '75':
+                                // MPIBegin75: MPI_Comm_split + MPI_Reduce
+                                const num75_0 = parseFloat(document.getElementById('task75-p0').value) || 5.5;
+                                const num75_1 = parseFloat(document.getElementById('task75-p1').value) || 3.2;
+                                const num75_2 = parseFloat(document.getElementById('task75-p2').value) || 7.1;
+                                const num75_3 = parseFloat(document.getElementById('task75-p3').value) || 1.8;
+                                
+                                const evenMax = Math.max(num75_0, num75_2);
+                                const oddMin = Math.min(num75_1, num75_3);
+                                
+                                result = `MPIBegin75: MPI_Comm_split + MPI_Reduce\n`;
+                                result += `================================\n`;
+                                result += `Процесстер жұп және тақ рангтерге бөлінді:\n\n`;
+                                result += `Жұп рангтер тобы (0, 2):\n`;
+                                result += `  Процесс 0: ${num75_0.toFixed(1)}\n`;
+                                result += `  Процесс 2: ${num75_2.toFixed(1)}\n`;
+                                result += `  Максимум = ${evenMax.toFixed(1)}\n`;
+                                result += `  (Процесс 0-де шығарылады)\n\n`;
+                                result += `Тақ рангтер тобы (1, 3):\n`;
+                                result += `  Процесс 1: ${num75_1.toFixed(1)}\n`;
+                                result += `  Процесс 3: ${num75_3.toFixed(1)}\n`;
+                                result += `  Минимум = ${oddMin.toFixed(1)}\n`;
+                                result += `  (Процесс 1-де шығарылады)\n`;
+                                break;
+                                
+                            case '77':
+                                // MPIBegin77: MPI_Comm_split + MPI_Gather
+                                const n77_0 = parseInt(document.getElementById('task77-p0-n').value);
+                                const n77_1 = parseInt(document.getElementById('task77-p1-n').value);
+                                const n77_2 = parseInt(document.getElementById('task77-p2-n').value);
+                                const n77_3 = parseInt(document.getElementById('task77-p3-n').value);
+                                
+                                const a77_0 = parseFloat(document.getElementById('task77-p0-a').value) || 10.5;
+                                const a77_1 = parseFloat(document.getElementById('task77-p1-a').value) || 20.5;
+                                const a77_2 = parseFloat(document.getElementById('task77-p2-a').value) || 30.5;
+                                const a77_3 = parseFloat(document.getElementById('task77-p3-a').value) || 40.5;
+                                
+                                result = `MPIBegin77: MPI_Comm_split + MPI_Gather\n`;
+                                result += `================================\n`;
+                                result += `N=1 процесстері үшін жаңа коммуникатор жасалды:\n\n`;
+                                
+                                // N=1 процесстерін жинау
+                                let activeProcesses = [];
+                                if (n77_0 === 1) activeProcesses.push({rank: 0, value: a77_0});
+                                if (n77_1 === 1) activeProcesses.push({rank: 1, value: a77_1});
+                                if (n77_2 === 1) activeProcesses.push({rank: 2, value: a77_2});
+                                if (n77_3 === 1) activeProcesses.push({rank: 3, value: a77_3});
+                                
+                                result += `N=1 процесстері: `;
+                                activeProcesses.forEach(p => result += `${p.rank} `);
+                                result += `\n\n`;
+                                
+                                result += `N=1 процесстерінің біріншісі (жаңа коммуникаторда ранг 0):\n`;
+                                result += `Барлық A сандары (өсу ретімен):\n`;
+                                activeProcesses.forEach(p => {
+                                    result += `  Процесс ${p.rank}: ${p.value.toFixed(1)}\n`;
+                                });
+                                
+                                // N=0 процесстері туралы ақпарат
+                                result += `\nN=0 процесстері: `;
+                                [0,1,2,3].forEach(r => {
+                                    const n = eval(`n77_${r}`);
+                                    if (n === 0) result += `${r} `;
+                                });
+                                result += `\n(коммуникаторға кірмейді)\n`;
+                                break;
+                                
+                            case '79':
+                                // MPIBegin79: MPI_Comm_split + MPI_Allgather
+                                result = `MPIBegin79: MPI_Comm_split + MPI_Allgather\n`;
+                                result += `================================\n`;
+                                result += `N=1 процесстері үшін жаңа коммуникатор жасалды:\n`;
+                                result += `(Мысал: процесстер 0,1,3 N=1, процесс 2 N=0)\n\n`;
+                                
+                                const active79 = [0, 1, 3]; // N=1 процесстері
+                                const values79 = [10.5, 20.5, 40.5]; // A мәндері
+                                
+                                for (let i = 0; i < active79.length; i++) {
+                                    const proc = active79[i];
+                                    result += `Процесс ${proc} (N=1, жаңа коммуникаторда ранг ${i}):\n`;
+                                    result += `Барлық A сандары N=1 процесстерінен (өсу ретімен):\n`;
+                                    for (let j = 0; j < values79.length; j++) {
+                                        result += `  Сан ${j}: ${values79[j].toFixed(1)}\n`;
+                                    }
+                                    if (i < active79.length - 1) result += `--------------------------------\n`;
+                                }
+                                
+                                result += `\nПроцесс 2: N=0, активті коммуникаторға кірмейді\n`;
+                                break;
+                                
+                            case '80':
+                                // MPIBegin80: MPI_Comm_split + MPI_Allgather
+                                const n80_0 = parseInt(document.getElementById('task80-p0-n').value);
+                                const n80_1 = parseInt(document.getElementById('task80-p1-n').value);
+                                const n80_2 = parseInt(document.getElementById('task80-p2-n').value);
+                                const n80_3 = parseInt(document.getElementById('task80-p3-n').value);
+                                
+                                const a80_0 = parseInt(document.getElementById('task80-p0-a').value) || 100;
+                                const a80_1 = parseInt(document.getElementById('task80-p1-a').value) || 200;
+                                const a80_2 = parseInt(document.getElementById('task80-p2-a').value) || 300;
+                                const a80_3 = parseInt(document.getElementById('task80-p3-a').value) || 400;
+                                
+                                result = `MPIBegin80: MPI_Comm_split + MPI_Allgather\n`;
+                                result += `================================\n`;
+                                result += `Процесстер N мәніне байланысты топтарға бөлінді:\n\n`;
+                                
+                                // N=1 тобы
+                                const group1 = [];
+                                if (n80_0 === 1) group1.push({rank: 0, value: a80_0});
+                                if (n80_1 === 1) group1.push({rank: 1, value: a80_1});
+                                if (n80_2 === 1) group1.push({rank: 2, value: a80_2});
+                                if (n80_3 === 1) group1.push({rank: 3, value: a80_3});
+                                
+                                // N=2 тобы
+                                const group2 = [];
+                                if (n80_0 === 2) group2.push({rank: 0, value: a80_0});
+                                if (n80_1 === 2) group2.push({rank: 1, value: a80_1});
+                                if (n80_2 === 2) group2.push({rank: 2, value: a80_2});
+                                if (n80_3 === 2) group2.push({rank: 3, value: a80_3});
+                                
+                                // N=1 тобы нәтижелері
+                                if (group1.length > 0) {
+                                    result += `N=1 тобы (${group1.length} процесс):\n`;
+                                    group1.forEach((p, i) => {
+                                        result += `  Процесс ${p.rank} (жаңа коммуникаторда ранг ${i}):\n`;
+                                        result += `    Топтағы барлық A сандары:\n`;
+                                        group1.forEach((gp, j) => {
+                                            result += `      Сан ${j}: ${gp.value}\n`;
+                                        });
+                                        if (i < group1.length - 1) result += `    ---\n`;
+                                    });
+                                    result += `\n`;
+                                }
+                                
+                                // N=2 тобы нәтижелері
+                                if (group2.length > 0) {
+                                    result += `N=2 тобы (${group2.length} процесс):\n`;
+                                    group2.forEach((p, i) => {
+                                        result += `  Процесс ${p.rank} (жаңа коммуникаторда ранг ${i}):\n`;
+                                        result += `    Топтағы барлық A сандары:\n`;
+                                        group2.forEach((gp, j) => {
+                                            result += `      Сан ${j}: ${gp.value}\n`;
+                                        });
+                                        if (i < group2.length - 1) result += `    ---\n`;
+                                    });
+                                }
+                                break;
+                        }
+                        
+                        outputElement.textContent = result;
+                    }, 1500);
+                });
+            });
+            
+            // Функция копирования кода
+            window.copyCode = function(codeId) {
+                const codeElement = document.getElementById(codeId);
+                const codeText = codeElement.textContent;
+                
+                navigator.clipboard.writeText(codeText).then(() => {
+                    const btn = event.target.closest('.copy-btn');
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Көшірілді!';
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                    }, 2000);
+                });
+            };
+            
+            // Открыть первую задачу по умолчанию
+            if (accordionHeaders.length > 0) {
+                accordionHeaders[0].click();
+            }
+        });
+    </script>
+</body>
+</html>

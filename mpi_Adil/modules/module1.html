@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 1: Процессер және олардың рангтары - MPI LAB</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <span class="atu-badge">АТУ</span>
+                MPI<span class="lab-text">Орталығы</span>
+            </a>
+            <div class="nav-links">
+                <a href="../index.html"><i class="fas fa-home"></i> Басты</a>
+                <a href="../about.html"><i class="fas fa-info-circle"></i> Жоба туралы</a>
+                <a href="../basics.html"><i class="fas fa-book"></i> MPI теориясы</a>
+                <div class="dropdown">
+                    <a href="#" class="dropdown-toggle active"><i class="fas fa-cubes"></i> Модульдер <i class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-menu">
+                        <a href="module1.html" class="active"><i class="fas fa-microchip"></i> Модуль 1</a>
+                        <a href="module2.html"><i class="fas fa-exchange-alt"></i> Модуль 2</a>
+                        <a href="module3.html"><i class="fas fa-users"></i> Модуль 3</a>
+                        <a href="module4.html"><i class="fas fa-network-wired"></i> Модуль 4</a>
+                        <a href="module5.html"><i class="fas fa-project-diagram"></i> Модуль 5</a>
+                    </div>
+                </div>
+                <a href="../cloud.html"><i class="fas fa-cloud"></i> Бұлттық технологиялар</a>
+            </div>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <section class="module-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Модуль 1: Процессер және олардың рангтары</h1>
+                <p class="subtitle">MPI бағдарламалаудың негіздерін үйрену</p>
+                <p class="description">
+                    Бұл модульде сіз процессер және олардың рангтарымен жұмыс істеуді, 
+                    MPI бастау және аяқтау функцияларын қолдануды үйренедіз.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="module-content">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="../index.html">Басты</a> / 
+                <a href="../basics.html">MPI негіздері</a> / 
+                <span>Модуль 1: Процессер рангтары</span>
+            </div>
+
+            <div class="task-container">
+                <!-- Task 3 - MPIBegin3 -->
+                <div class="task-card">
+                    <div class="task-header">
+                        <h3 class="task-title">
+                            <i class="fas fa-hashtag"></i> MPIBegin3
+                        </h3>
+                        <span class="task-id">Вариант 7</span>
+                    </div>
+                    
+                    <div class="task-description">
+                        <p><strong>Тапсырма:</strong> Процессердің жұп рангіндегі (бас процессті қоса алғанда) бүтін санды енгізіңіз, тақ рангіндегі процесстерде нақты санды енгізіңіз. Әр процесте енгізілген санның екі еселенген мәнін шығарыңыз.</p>
+                        <p><strong>Мысал:</strong> 4 процесс іске қосылғанда:<br>
+                        • Процесс 0 (жұп, бас): бүтін сан<br>
+                        • Процесс 1 (тақ): нақты сан<br>
+                        • Процесс 2 (жұп): бүтін сан<br>
+                        • Процесс 3 (тақ): нақты сан</p>
+                    </div>
+                    
+                    <div class="code-execution">
+                        <h4 class="execution-title"><i class="fas fa-play-circle"></i> Тапсырманы орындау</h4>
+                        <p>Әр процесс үшін сандарды енгізіңіз (жұп рангтер үшін бүтін, тақ рангтер үшін нақты):</p>
+                        
+                        <div class="input-group">
+                            <label>Процесс 0 (жұп, бас) үшін бүтін сан:</label>
+                            <input type="number" id="task3-process0" value="7" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label>Процесс 1 (тақ) үшін нақты сан:</label>
+                            <input type="number" id="task3-process1" value="3.14" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>Процесс 2 (жұп) үшін бүтін сан:</label>
+                            <input type="number" id="task3-process2" value="12" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label>Процесс 3 (тақ) үшін нақты сан:</label>
+                            <input type="number" id="task3-process3" value="5.25" step="0.01">
+                        </div>
+                        
+                        <button class="run-btn" data-task="3">
+                            <i class="fas fa-play"></i> Іске қосу (4 процесс)
+                        </button>
+                        
+                        <div class="task-output" id="output3">
+                            <div class="output-title">
+                                <i class="fas fa-terminal"></i> Нәтиже:
+                            </div>
+                            <div class="output-content">Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...</div>
+                        </div>
+                    </div>
+                    
+                    <div class="explanation">
+                        <h4 class="explanation-title"><i class="fas fa-lightbulb"></i> Шешу тәсілі</h4>
+                        <p>Бұл тапсырманы орындау үшін:</p>
+                        <ol>
+                            <li>MPI ортасын инициализациялау (MPI_Init)</li>
+                            <li>Әр процестің рангін алу (MPI_Comm_rank)</li>
+                            <li>Рангтің жұп немесе тақ екенін анықтау (rank % 2 == 0)</li>
+                            <li>Жұп рангтер үшін бүтін сан енгізу, тақ рангтер үшін нақты сан енгізу</li>
+                            <li>Енгізілген санның екі еселенгенін есептеу</li>
+                            <li>Нәтижені шығару</li>
+                            <li>MPI ортасын жабу (MPI_Finalize)</li>
+                        </ol>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin3.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" data-code="task3-code">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task3-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank;
+    double result;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    
+    if (rank % 2 == 0) {  // Жұп рангтер (0, 2, 4, ...)
+        int number_int;
+        // Нақты бағдарламада: scanf("%d", &number_int);
+        // Бұл мысалда алдын ала берілген мән
+        if (rank == 0) number_int = 7;
+        else if (rank == 2) number_int = 12;
+        
+        result = number_int * 2.0;
+        printf("Процесс %d (жұп ранг): бүтін сан = %d, 2 еселенгені = %.0f\n", 
+               rank, number_int, result);
+    } else {  // Тақ рангтер (1, 3, 5, ...)
+        double number_double;
+        // Нақты бағдарламада: scanf("%lf", &number_double);
+        // Бұл мысалда алдын ала берілген мән
+        if (rank == 1) number_double = 3.14;
+        else if (rank == 3) number_double = 5.25;
+        
+        result = number_double * 2.0;
+        printf("Процесс %d (тақ ранг): нақты сан = %.2f, 2 еселенгені = %.2f\n", 
+               rank, number_double, result);
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Task 6 - MPIBegin6 -->
+                <div class="task-card">
+                    <div class="task-header">
+                        <h3 class="task-title">
+                            <i class="fas fa-layer-group"></i> MPIBegin6
+                        </h3>
+                        <span class="task-id">Вариант 7</span>
+                    </div>
+                    
+                    <div class="task-description">
+                        <p><strong>Тапсырма:</strong> Әр процесте бүтін сан N (> 0) және N саннан тұратын жиынтық берілген. Бағынушы процесстердің жұп рангінде жиынтықтағы сандардың қосындысын шығарыңыз, тақ рангіндегі процесстерде жиынтықтағы сандардың арифметикалық ортасын шығарыңыз, бас процесте жиынтықтағы сандардың көбейтіндісін шығарыңыз.</p>
+                        <p><strong>Мысал:</strong> Әр процесте 3 сан берілген. Есептеулер жұп/тақ рангтерге және бас процессқа байланысты жүргізіледі.</p>
+                    </div>
+                    
+                    <div class="code-execution">
+                        <h4 class="execution-title"><i class="fas fa-play-circle"></i> Тапсырманы орындау</h4>
+                        <p>Әр процесс үшін N мәнін және N саннан тұратын жиынтықты енгізіңіз:</p>
+                        
+                        <div class="input-group">
+                            <label>Процесс 0 (бас) үшін N (сандар саны):</label>
+                            <input type="number" id="task6-n0" value="3" min="1" step="1">
+                        </div>
+                        <div class="array-inputs" id="array-inputs0">
+                            <!-- Динамически будут добавлены поля для чисел -->
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Процесс 1 (тақ ранг) үшін N:</label>
+                            <input type="number" id="task6-n1" value="3" min="1" step="1">
+                        </div>
+                        <div class="array-inputs" id="array-inputs1">
+                            <!-- Динамически будут добавлены поля для чисел -->
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Процесс 2 (жұп ранг) үшін N:</label>
+                            <input type="number" id="task6-n2" value="3" min="1" step="1">
+                        </div>
+                        <div class="array-inputs" id="array-inputs2">
+                            <!-- Динамически будут добавлены поля для чисел -->
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Процесс 3 (тақ ранг) үшін N:</label>
+                            <input type="number" id="task6-n3" value="3" min="1" step="1">
+                        </div>
+                        <div class="array-inputs" id="array-inputs3">
+                            <!-- Динамически будут добавлены поля для чисел -->
+                        </div>
+                        
+                        <button class="run-btn" data-task="6">
+                            <i class="fas fa-play"></i> Іске қосу (4 процесс)
+                        </button>
+                        
+                        <div class="task-output" id="output6">
+                            <div class="output-title">
+                                <i class="fas fa-terminal"></i> Нәтиже:
+                            </div>
+                            <div class="output-content">Мәліметтерді енгізіңіз және "Іске қосу" түймесін басыңыз...</div>
+                        </div>
+                    </div>
+                    
+                    <div class="explanation">
+                        <h4 class="explanation-title"><i class="fas fa-lightbulb"></i> Шешу тәсілі</h4>
+                        <p>Бұл тапсырманы орындау үшін:</p>
+                        <ol>
+                            <li>Әр процесте N мәнін және N саннан тұратын жиынтықты енгізу</li>
+                            <li>Бас процесте (ранг 0) жиынтықтағы сандардың көбейтіндісін есептеу</li>
+                            <li>Бағынушы процесстердің жұп рангінде (2, 4, ...) қосындыны есептеу</li>
+                            <li>Бағынушы процесстердің тақ рангінде (1, 3, ...) орташа мәнді есептеу</li>
+                            <li>Әр процестің өз нәтижесін шығару</li>
+                        </ol>
+                        
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span>mpi_begin6.c - ДҰРЫС ШЕШІМ</span>
+                                <button class="copy-btn" data-code="task6-code">
+                                    <i class="far fa-copy"></i> Көшіру
+                                </button>
+                            </div>
+                            <pre id="task6-code"><code>#include "mpi.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[]) {
+    int rank, N;
+    
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    
+    // Әр процесте N мәні (бұл мысалда бәрі үшін 3)
+    N = 3;
+    
+    // Әр процестегі сандар массиві (мысал мәндері)
+    double numbers[3];
+    
+    // Мысал мәндерді орнату
+    if (rank == 0) {
+        numbers[0] = 2.0;
+        numbers[1] = 3.0;
+        numbers[2] = 4.0;
+    } else if (rank == 1) {
+        numbers[0] = 1.5;
+        numbers[1] = 2.5;
+        numbers[2] = 3.5;
+    } else if (rank == 2) {
+        numbers[0] = 5.0;
+        numbers[1] = 6.0;
+        numbers[2] = 7.0;
+    } else if (rank == 3) {
+        numbers[0] = 1.0;
+        numbers[1] = 2.0;
+        numbers[2] = 3.0;
+    }
+    
+    // Есептеулерді орындау
+    if (rank == 0) {  // Бас процесс
+        double product = 1.0;
+        for (int i = 0; i < N; i++) {
+            product *= numbers[i];
+        }
+        printf("Бас процесс (ранг 0):\n");
+        printf("  Сандар: %.1f, %.1f, %.1f\n", numbers[0], numbers[1], numbers[2]);
+        printf("  Көбейтіндісі = %.2f\n", product);
+        
+    } else if (rank % 2 == 0) {  // Жұп рангті бағынушы процесстер (2, 4, ...)
+        double sum = 0.0;
+        for (int i = 0; i < N; i++) {
+            sum += numbers[i];
+        }
+        printf("Бағынушы процесс %d (жұп ранг):\n", rank);
+        printf("  Сандар: %.1f, %.1f, %.1f\n", numbers[0], numbers[1], numbers[2]);
+        printf("  Қосындысы = %.2f\n", sum);
+        
+    } else {  // Тақ рангті бағынушы процесстер (1, 3, ...)
+        double sum = 0.0;
+        for (int i = 0; i < N; i++) {
+            sum += numbers[i];
+        }
+        double average = sum / N;
+        printf("Бағынушы процесс %d (тақ ранг):\n", rank);
+        printf("  Сандар: %.1f, %.1f, %.1f\n", numbers[0], numbers[1], numbers[2]);
+        printf("  Орташа мәні = %.2f\n", average);
+    }
+    
+    MPI_Finalize();
+    return 0;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>MPI<span>LAB</span></h3>
+                    <p>Жоғары өнімді есептеулер және параллельдік бағдарламалау бойынша оқу ресурсы</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Беттер</h4>
+                    <ul>
+                        <li><a href="../index.html">Басты бет</a></li>
+                        <li><a href="../about.html">Жоба туралы</a></li>
+                        <li><a href="../basics.html">MPI теориясы</a></li>
+                        <li><a href="../cloud.html">Бұлттық технологиялар</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Модульдер</h4>
+                    <ul>
+                        <li><a href="module1.html" class="active">Модуль 1: Процессер рангтары</a></li>
+                        <li><a href="module2.html">Модуль 2: Хабар алмасу</a></li>
+                        <li><a href="module3.html">Модуль 3: Жиынтық операциялар</a></li>
+                        <li><a href="module4.html">Модуль 4: Коллективтік жіберу</a></li>
+                        <li><a href="module5.html">Модуль 5: Виртуалды топологиялар</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Байланыс</h4>
+                    <p><i class="fas fa-user-graduate"></i> Жетекші: Букенова Индира Нурмуханбетовна</p>
+                    <p><i class="fas fa-calendar"></i> 2024 жыл</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 MPI LAB - Барлық құқықтар қорғалған</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Динамические поля для ввода массива чисел
+            function createArrayInputs(nInput, arrayContainerId) {
+                const n = parseInt(nInput.value) || 1;
+                const container = document.getElementById(arrayContainerId);
+                container.innerHTML = '';
+                
+                for (let i = 0; i < n; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'input-group';
+                    div.innerHTML = `
+                        <label>Сан ${i + 1}:</label>
+                        <input type="number" class="array-number" value="${i + 1}" step="0.1">
+                    `;
+                    container.appendChild(div);
+                }
+            }
+            
+            // Инициализация полей для массивов
+            const nInputs = [
+                document.getElementById('task6-n0'),
+                document.getElementById('task6-n1'),
+                document.getElementById('task6-n2'),
+                document.getElementById('task6-n3')
+            ];
+            
+            nInputs.forEach((input, index) => {
+                createArrayInputs(input, `array-inputs${index}`);
+                input.addEventListener('input', function() {
+                    createArrayInputs(this, `array-inputs${index}`);
+                });
+            });
+            
+            // Обработка выполнения задач
+            const runButtons = document.querySelectorAll('.run-btn');
+            
+            runButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const taskId = this.getAttribute('data-task');
+                    const outputElement = document.getElementById(`output${taskId}`);
+                    const outputContent = outputElement.querySelector('.output-content');
+                    
+                    this.classList.add('running');
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Орындалуда...';
+                    outputElement.classList.add('active');
+                    outputContent.textContent = 'MPI бағдарламасы іске қосылуда...\n';
+                    
+                    setTimeout(() => {
+                        this.classList.remove('running');
+                        this.innerHTML = originalText;
+                        
+                        let result = '';
+                        if (taskId === '3') {
+                            // MPIBegin3
+                            const num0 = parseInt(document.getElementById('task3-process0').value) || 7;
+                            const num1 = parseFloat(document.getElementById('task3-process1').value) || 3.14;
+                            const num2 = parseInt(document.getElementById('task3-process2').value) || 12;
+                            const num3 = parseFloat(document.getElementById('task3-process3').value) || 5.25;
+                            
+                            result = `MPI_Begin3: 4 процесс іске қосылды\n`;
+                            result += `================================\n`;
+                            result += `Процесс 0 (жұп ранг, бас):\n`;
+                            result += `  Енгізілген бүтін сан = ${num0}\n`;
+                            result += `  2 еселенгені = ${num0 * 2}\n`;
+                            result += `================================\n`;
+                            result += `Процесс 1 (тақ ранг):\n`;
+                            result += `  Енгізілген нақты сан = ${num1.toFixed(2)}\n`;
+                            result += `  2 еселенгені = ${(num1 * 2).toFixed(2)}\n`;
+                            result += `================================\n`;
+                            result += `Процесс 2 (жұп ранг):\n`;
+                            result += `  Енгізілген бүтін сан = ${num2}\n`;
+                            result += `  2 еселенгені = ${num2 * 2}\n`;
+                            result += `================================\n`;
+                            result += `Процесс 3 (тақ ранг):\n`;
+                            result += `  Енгізілген нақты сан = ${num3.toFixed(2)}\n`;
+                            result += `  2 еселенгені = ${(num3 * 2).toFixed(2)}\n`;
+                            result += `================================\n`;
+                            
+                        } else if (taskId === '6') {
+                            // MPIBegin6
+                            result = `MPI_Begin6: 4 процесс іске қосылды\n`;
+                            result += `================================\n`;
+                            
+                            // Процесс 0 (бас процесс)
+                            const n0 = parseInt(document.getElementById('task6-n0').value) || 3;
+                            const nums0 = [];
+                            const container0 = document.getElementById('array-inputs0');
+                            const inputs0 = container0.querySelectorAll('.array-number');
+                            inputs0.forEach(input => nums0.push(parseFloat(input.value) || 1));
+                            
+                            let product = 1.0;
+                            let numsStr0 = '';
+                            nums0.forEach((num, idx) => {
+                                product *= num;
+                                numsStr0 += `${num.toFixed(1)}`;
+                                if (idx < nums0.length - 1) numsStr0 += ', ';
+                            });
+                            
+                            result += `Бас процесс (ранг 0):\n`;
+                            result += `  N = ${n0}\n`;
+                            result += `  Сандар: ${numsStr0}\n`;
+                            result += `  Көбейтіндісі = ${product.toFixed(2)}\n`;
+                            result += `================================\n`;
+                            
+                            // Остальные процессы
+                            for (let rank = 1; rank <= 3; rank++) {
+                                const n = parseInt(document.getElementById(`task6-n${rank}`).value) || 3;
+                                const container = document.getElementById(`array-inputs${rank}`);
+                                const inputs = container.querySelectorAll('.array-number');
+                                const nums = [];
+                                inputs.forEach(input => nums.push(parseFloat(input.value) || 1));
+                                
+                                let sum = 0.0;
+                                let numsStr = '';
+                                nums.forEach((num, idx) => {
+                                    sum += num;
+                                    numsStr += `${num.toFixed(1)}`;
+                                    if (idx < nums.length - 1) numsStr += ', ';
+                                });
+                                
+                                if (rank % 2 === 0) { // Жұп ранг
+                                    result += `Бағынушы процесс ${rank} (жұп ранг):\n`;
+                                    result += `  N = ${n}\n`;
+                                    result += `  Сандар: ${numsStr}\n`;
+                                    result += `  Қосындысы = ${sum.toFixed(2)}\n`;
+                                } else { // Тақ ранг
+                                    const average = sum / n;
+                                    result += `Бағынушы процесс ${rank} (тақ ранг):\n`;
+                                    result += `  N = ${n}\n`;
+                                    result += `  Сандар: ${numsStr}\n`;
+                                    result += `  Орташа мәні = ${average.toFixed(2)}\n`;
+                                }
+                                result += `================================\n`;
+                            }
+                        }
+                        
+                        outputContent.textContent = result;
+                    }, 2000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
